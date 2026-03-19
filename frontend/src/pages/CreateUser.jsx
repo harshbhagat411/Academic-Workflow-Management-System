@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
     Box, Card, CardContent, Typography, TextField, MenuItem, Button as MuiButton, Alert, Grid
 } from '@mui/material';
+import Layout from '../components/Layout';
 
 const CreateUser = () => {
     const [formData, setFormData] = useState({
@@ -100,8 +101,9 @@ const CreateUser = () => {
     };
 
     return (
-        <Box sx={{ p: { xs: 2, md: 4 }, minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', pt: { xs: 4, md: 8 } }}>
-            <Card sx={{ maxWidth: 600, w: '100%', width: '100%', borderRadius: 3, boxShadow: 4, animation: 'fadeInUp 0.5s ease-out' }}>
+        <Layout role="Admin">
+            <Box sx={{ p: { xs: 2, md: 4 }, minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', pt: { xs: 4, md: 8 } }}>
+                <Card sx={{ maxWidth: 600, w: '100%', width: '100%', borderRadius: 3, boxShadow: 4, animation: 'fadeInUp 0.5s ease-out' }}>
                 <CardContent sx={{ p: { xs: 3, md: 5 } }}>
                     <Typography variant="h5" fontWeight="bold" align="center" mb={3} color="primary.main">
                         Create New User
@@ -240,7 +242,8 @@ const CreateUser = () => {
                     </Box>
                 </CardContent>
             </Card>
-        </Box>
+            </Box>
+        </Layout>
     );
 };
 

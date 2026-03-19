@@ -5,6 +5,7 @@ import {
     TableCell, TableContainer, TableHead, TableRow, Paper, Alert, Chip, Divider
 } from '@mui/material';
 import { CloudUpload, CheckCircle, Error as ErrorIcon, Cancel } from '@mui/icons-material';
+import Layout from '../components/Layout';
 
 const BulkUserUpload = () => {
     const [file, setFile] = useState(null);
@@ -74,8 +75,9 @@ const BulkUserUpload = () => {
     };
 
     return (
-        <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 900, mx: 'auto', animation: 'fadeInUp 0.5s ease-out' }}>
-            <Typography variant="h4" fontWeight="bold" mb={4}>
+        <Layout role="Admin">
+            <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 900, mx: 'auto', animation: 'fadeInUp 0.5s ease-out' }}>
+                <Typography variant="h4" fontWeight="bold" mb={4}>
                 Bulk User Upload
             </Typography>
 
@@ -199,7 +201,8 @@ const BulkUserUpload = () => {
                     )}
                 </Card>
             )}
-        </Box>
+            </Box>
+        </Layout>
     );
 };
 

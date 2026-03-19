@@ -6,6 +6,7 @@ import {
     TextField, Button as MuiButton, Chip, Alert, Dialog
 } from '@mui/material';
 import RequestTimeline from '../components/RequestTimeline';
+import Layout from '../components/Layout';
 
 const AdminRequests = () => {
     const [requests, setRequests] = useState([]);
@@ -69,8 +70,9 @@ const AdminRequests = () => {
         : requests;
 
     return (
-        <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, mx: 'auto', animation: 'fadeInUp 0.5s ease-out' }}>
-            <Typography variant="h4" fontWeight="bold" mb={4}>
+        <Layout role="Admin">
+            <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, mx: 'auto', animation: 'fadeInUp 0.5s ease-out' }}>
+                <Typography variant="h4" fontWeight="bold" mb={4}>
                 Manage Academic Requests
             </Typography>
 
@@ -260,7 +262,8 @@ const AdminRequests = () => {
                     )}
                 </Box>
             </Dialog>
-        </Box>
+            </Box>
+        </Layout>
     );
 };
 
