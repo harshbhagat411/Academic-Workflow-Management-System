@@ -29,7 +29,6 @@ const AdminRequests = () => {
             console.error('Error fetching admin requests:', err);
         }
     };
-// test change2
     useEffect(() => {
         fetchRequests();
     }, [activeTab]);
