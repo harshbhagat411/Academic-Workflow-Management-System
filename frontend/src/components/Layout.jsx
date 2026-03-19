@@ -59,6 +59,7 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
             return [
                 { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard size={20} />, tabMode: true, path: '/student/dashboard' },
                 { id: 'attendance', label: 'Attendance', icon: <ClipboardCheck size={20} />, tabMode: false, path: '/student/attendance' },
+                { id: 'timetable', label: 'Timetable', icon: <Clock size={20} />, tabMode: false, path: '/student/timetable' },
                 { id: 'marks', label: 'Marks', icon: <FileSpreadsheet size={20} />, tabMode: false, path: '/student/marks' },
                 { id: 'requests', label: 'Academic Requests', icon: <FileText size={20} />, tabMode: false, path: '/student/requests' },
                 { id: 'chat', label: 'Mentor Chat', icon: <MessageCircle size={20} />, tabMode: false, path: '/student/chat' },

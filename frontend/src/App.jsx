@@ -19,6 +19,7 @@ import StudentAttendance from './pages/StudentAttendance';
 import FacultyAssessments from './pages/FacultyAssessments';
 import AssessmentMarksEntry from './pages/AssessmentMarksEntry';
 import StudentMarks from './pages/StudentMarks';
+import StudentTimetable from './pages/StudentTimetable';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 
@@ -75,6 +76,11 @@ function App() {
           <Route path="/student/requests" element={
             <ProtectedRoute allowedRoles={['Student']}>
               <AcademicRequests />
+            </ProtectedRoute>
+          } />
+          <Route path="/student/timetable" element={
+            <ProtectedRoute allowedRoles={['Student']}>
+              <StudentTimetable />
             </ProtectedRoute>
           } />
 
