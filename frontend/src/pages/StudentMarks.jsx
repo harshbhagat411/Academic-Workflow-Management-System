@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
     Box, Typography, Card, CircularProgress, Paper, 
-    FormControl, InputLabel, Select, MenuItem, Grid,
+    TextField, MenuItem, Grid, Divider,
     List, ListItem, ListItemAvatar, Avatar, ListItemText, Chip 
 } from '@mui/material';
 import { Award, BookOpen, ListFilter, FileText } from 'lucide-react';
@@ -55,7 +55,7 @@ const StudentMarks = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 console.log('API Response:', res.data);
-                setSubjects(res.data);
+                setSubjects(res.data || []);
                 // Reset subsequent filters
                 setSelectedSubject('');
                 setAssessments([]);
@@ -84,7 +84,7 @@ const StudentMarks = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 // Backend now returns object { subjectName, assessments: [] }
-                setAssessments(res.data.assessments || []);
+                setAssessments(res.data?.assessments || res.data || []);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -96,13 +96,13 @@ const StudentMarks = () => {
     }, [selectedSubject, token]);
 
     const calculatePercentage = () => {
-        if (!assessments.length) return 0;
+        if (!assessments || assessments.length === 0) return 0;
         let totalObtained = 0;
         let totalMax = 0;
         assessments.forEach(a => {
-            if (a.status === 'Locked' && a.marksObtained !== 'N/A') {
+            if (a?.status === 'Locked' && a?.marksObtained !== 'N/A' && a?.marksObtained != null) {
                 totalObtained += parseFloat(a.marksObtained);
-                totalMax += a.maxMarks;
+                totalMax += (a.maxMarks || 0);
             }
         });
         return totalMax > 0 ? ((totalObtained / totalMax) * 100).toFixed(1) : 0;
@@ -123,40 +123,39 @@ const StudentMarks = () => {
 
                 {/* Filters Section */}
                 <Card sx={{ p: 3, mb: 4, borderRadius: 3, boxShadow: 2, bgcolor: 'background.paper' }}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined">
-                                <InputLabel>Select Semester</InputLabel>
-                                <Select
-                                    value={selectedSemester}
-                                    onChange={(e) => setSelectedSemester(e.target.value)}
-                                    label="Select Semester"
-                                >
-                                    <MenuItem value=""><em>-- Choose Semester --</em></MenuItem>
-                                    {semesters.map(sem => (
-                                        <MenuItem key={sem} value={sem}>Semester {sem}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Grid>
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
+                        <Box sx={{ flex: 1 }}>
+                            <TextField
+                                select
+                                fullWidth
+                                label="Select Semester"
+                                value={selectedSemester}
+                                onChange={(e) => setSelectedSemester(e.target.value)}
+                            >
+                                <MenuItem value=""><em>-- Choose Semester --</em></MenuItem>
+                                {semesters?.map(sem => (
+                                    <MenuItem key={sem} value={sem}>Semester {sem}</MenuItem>
+                                ))}
+                            </TextField>
+                        </Box>
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" disabled={!selectedSemester || loadingSubjects}>
-                                <InputLabel>Select Subject</InputLabel>
-                                <Select
-                                    value={selectedSubject}
-                                    onChange={(e) => setSelectedSubject(e.target.value)}
-                                    label="Select Subject"
-                                >
-                                    <MenuItem value=""><em>-- Choose Subject --</em></MenuItem>
-                                    {subjects.map(sub => (
-                                        <MenuItem key={sub._id} value={sub._id}>{sub.name} ({sub.code})</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                        <Box sx={{ flex: 1 }}>
+                            <TextField
+                                select
+                                fullWidth
+                                label="Select Subject"
+                                value={selectedSubject}
+                                onChange={(e) => setSelectedSubject(e.target.value)}
+                                disabled={!selectedSemester || loadingSubjects}
+                            >
+                                <MenuItem value=""><em>-- Choose Subject --</em></MenuItem>
+                                {subjects?.length > 0 ? subjects.map(sub => (
+                                    <MenuItem key={sub._id} value={sub._id}>{sub.name} ({sub.code})</MenuItem>
+                                )) : <MenuItem disabled>No subjects available</MenuItem>}
+                            </TextField>
                             {loadingSubjects && <Typography variant="caption" color="primary.main" mt={0.5} display="block">Loading subjects...</Typography>}
-                        </Grid>
-                    </Grid>
+                        </Box>
+                    </Box>
                 </Card>
 
                 {/* Assessments List / Empty State */}
@@ -171,7 +170,7 @@ const StudentMarks = () => {
                         </Avatar>
                         <Typography color="text.secondary">Please select a subject to view assessments.</Typography>
                     </Box>
-                ) : assessments.length === 0 ? (
+                ) : (!assessments || assessments.length === 0) ? (
                     <Box sx={{ textAlign: 'center', py: 10, bgcolor: 'action.hover', borderRadius: 3, border: '1px dashed', borderColor: 'divider' }}>
                         <Typography color="text.secondary">No assessments found for this subject.</Typography>
                     </Box>
@@ -186,35 +185,35 @@ const StudentMarks = () => {
 
                         <Paper sx={{ borderRadius: 3, overflow: 'hidden', border: 1, borderColor: 'divider' }} elevation={0}>
                             <List disablePadding>
-                                {assessments.map((assessment, index) => (
-                                    <React.Fragment key={assessment._id}>
+                                {assessments?.map((assessment, index) => (
+                                    <React.Fragment key={assessment?._id || index}>
                                         <ListItem sx={{ p: 3, display: 'flex', justifyContent: 'space-between', '&:hover': { bgcolor: 'action.hover' } }}>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                                 <ListItemAvatar>
                                                     <Avatar sx={{ 
-                                                        bgcolor: assessment.status === 'Locked' ? 'success.50' : 'action.selected', 
-                                                        color: assessment.status === 'Locked' ? 'success.main' : 'text.secondary' 
+                                                        bgcolor: assessment?.status === 'Locked' ? 'success.50' : 'action.selected', 
+                                                        color: assessment?.status === 'Locked' ? 'success.main' : 'text.secondary' 
                                                     }}>
                                                         <FileText size={20} />
                                                     </Avatar>
                                                 </ListItemAvatar>
                                                 <ListItemText
-                                                    primary={<Typography variant="subtitle1" fontWeight="bold">{assessment.title}</Typography>}
+                                                    primary={<Typography variant="subtitle1" fontWeight="bold">{assessment?.title || 'Unknown Assessment'}</Typography>}
                                                     secondary={
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                                                            <Chip label={assessment.type} size="small" sx={{ fontSize: '0.7rem', fontWeight: 'medium', textTransform: 'uppercase' }} />
+                                                            <Chip label={assessment?.type || 'Other'} size="small" sx={{ fontSize: '0.7rem', fontWeight: 'medium', textTransform: 'uppercase' }} />
                                                             <Typography variant="caption" color="text.secondary">•</Typography>
-                                                            <Typography variant="caption" color="text.secondary">Max: {assessment.maxMarks}</Typography>
+                                                            <Typography variant="caption" color="text.secondary">Max: {assessment?.maxMarks || 0}</Typography>
                                                         </Box>
                                                     }
                                                 />
                                             </Box>
 
                                             <Box sx={{ textAlign: 'right' }}>
-                                                {assessment.status === 'Locked' ? (
+                                                {assessment?.status === 'Locked' ? (
                                                     <Box>
                                                         <Typography variant="h5" fontWeight="bold" color="text.primary">
-                                                            {assessment.marksObtained !== 'N/A' ? assessment.marksObtained : '-'}
+                                                            {assessment?.marksObtained !== 'N/A' && assessment?.marksObtained != null ? assessment.marksObtained : '-'}
                                                         </Typography>
                                                         <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase">
                                                             Obtained
@@ -230,7 +229,7 @@ const StudentMarks = () => {
                                                 )}
                                             </Box>
                                         </ListItem>
-                                        {index < assessments.length - 1 && <Divider component="li" />}
+                                        {index < (assessments?.length || 0) - 1 && <Divider component="li" />}
                                     </React.Fragment>
                                 ))}
                             </List>
