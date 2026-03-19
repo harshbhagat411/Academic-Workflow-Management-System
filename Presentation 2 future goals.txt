@@ -1,0 +1,19 @@
+# things that we need to update (rakesh sir)
+
+1. user can login through email (verify while registering email if there exist in internet or not )
+2. if acadmic year change sysem should move current semster to next semster and add new students 
+3. we have to change wordings "counsilor" in place or "mentor"
+
+
+# things we updated by our self 
+1 enhanced ui (we have added thems acording to difrent user )
+2 updated chat system that newer chat apears on top and we have also added unread counts 
+
+
+# things that we are going to implement in Presentation 2 
+
+1 changed whole frontend (ui) for efficent code and reuusable components 
+
+
+
+# things that you can suggest (Meet , Parangi )
