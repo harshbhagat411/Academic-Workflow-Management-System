@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Box, Typography, Card, CardContent, Button, Chip, CircularProgress, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid } from '@mui/material';
 import { Calendar, Clock, CheckCircle, AlertCircle, PlayCircle, Users, ArrowLeft, Save, Shield } from 'lucide-react';
 import Layout from '../components/Layout';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const FacultyAttendance = () => {
     const [schedule, setSchedule] = useState([]);
@@ -12,6 +13,9 @@ const FacultyAttendance = () => {
     const [activeSessionId, setActiveSessionId] = useState(null);
     const [students, setStudents] = useState([]);
     const [submitting, setSubmitting] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', description: '', type: 'default', action: null });
+
+    const closeConfirmDialog = () => setConfirmDialog(prev => ({ ...prev, open: false }));
 
     const token = localStorage.getItem('token');
 
@@ -203,7 +207,13 @@ const FacultyAttendance = () => {
                                 color="success"
                                 size="large"
                                 startIcon={<Save />}
-                                onClick={submitAttendance}
+                                onClick={() => setConfirmDialog({
+                                    open: true,
+                                    title: 'Submit Attendance',
+                                    description: 'Are you sure you want to save the attendance? This action cannot be easily undone.',
+                                    type: 'default',
+                                    action: submitAttendance
+                                })}
                                 disabled={submitting}
                                 sx={{ fontWeight: 'bold', borderRadius: 2 }}
                             >
@@ -396,6 +406,16 @@ const FacultyAttendance = () => {
                     </Card>
                 )}
             </Box>
+            <ConfirmDialog 
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                description={confirmDialog.description}
+                type={confirmDialog.type}
+                onConfirm={() => {
+                    if (confirmDialog.action) confirmDialog.action();
+                }}
+                onClose={closeConfirmDialog}
+            />
         </Layout>
     );
 };

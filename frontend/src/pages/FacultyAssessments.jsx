@@ -4,6 +4,7 @@ import { Box, Typography, Button, Card, Grid, Chip, Dialog, DialogTitle, DialogC
 import { Plus, BookOpen, Lock, Edit2, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const FacultyAssessments = () => {
     const [assessments, setAssessments] = useState([]);
@@ -12,6 +13,9 @@ const FacultyAssessments = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', description: '', type: 'default', action: null });
+
+    const closeConfirmDialog = () => setConfirmDialog(prev => ({ ...prev, open: false }));
 
     // Form State
     const [newItem, setNewItem] = useState({
@@ -61,8 +65,6 @@ const FacultyAssessments = () => {
     };
 
     const handleLock = async (id, title) => {
-        if (!window.confirm(`Are you sure you want to LOCK "${title}"? Marks cannot be edited after locking.`)) return;
-
         try {
             await axios.put(`http://localhost:5000/api/assessments/${id}/lock`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -160,7 +162,13 @@ const FacultyAssessments = () => {
                                         {item.status !== 'Locked' && (
                                             <IconButton
                                                 color="error"
-                                                onClick={() => handleLock(item._id, item.title)}
+                                                onClick={() => setConfirmDialog({
+                                                    open: true,
+                                                    title: 'Lock Assessment',
+                                                    description: `Are you sure you want to LOCK "${item.title}"? Marks cannot be edited after locking.`,
+                                                    type: 'danger',
+                                                    action: () => handleLock(item._id, item.title)
+                                                })}
                                                 title="Lock Assessment"
                                                 sx={{ 
                                                     border: '1px solid', 
@@ -243,6 +251,17 @@ const FacultyAssessments = () => {
                     </form>
                 </Dialog>
             </Box>
+            <ConfirmDialog 
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                description={confirmDialog.description}
+                type={confirmDialog.type}
+                confirmText={confirmDialog.type === 'danger' ? 'Yes, Lock It' : 'Confirm'}
+                onConfirm={() => {
+                    if (confirmDialog.action) confirmDialog.action();
+                }}
+                onClose={closeConfirmDialog}
+            />
         </Layout>
     );
 };

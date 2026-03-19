@@ -7,6 +7,7 @@ import {
 import { FileText, CheckCircle, XCircle, X as Close, History, Clock } from 'lucide-react';
 import Layout from '../components/Layout';
 import RequestTimeline from '../components/RequestTimeline';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const FacultyRequests = () => {
     const [requests, setRequests] = useState([]);
@@ -15,6 +16,9 @@ const FacultyRequests = () => {
     const [selectedRequestId, setSelectedRequestId] = useState(null);
     const [activeTab, setActiveTab] = useState('pending');
     const [loading, setLoading] = useState(true);
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', description: '', type: 'default', action: null });
+
+    const closeConfirmDialog = () => setConfirmDialog(prev => ({ ...prev, open: false }));
 
     const fetchRequests = async () => {
         setLoading(true);
@@ -45,10 +49,9 @@ const FacultyRequests = () => {
         setRemarksInput(prev => ({ ...prev, [reqId]: value }));
     };
 
-    const handleAction = async (requestId, status) => {
+    const executeAction = async (requestId, status) => {
         const remarks = remarksInput[requestId];
-        if (!remarks) {
-            setMessage(`Please enter remarks to ${status === 'Faculty Approved' ? 'Approve' : 'Reject'}`);
+        if (!remarks && status !== 'Faculty Approved' && status !== 'Rejected') {
             return;
         }
 
@@ -65,6 +68,22 @@ const FacultyRequests = () => {
             console.error('Error updating status:', err);
             setMessage('Error updating request status');
         }
+    };
+
+    const handleActionClick = (requestId, status) => {
+        const remarks = remarksInput[requestId];
+        if (!remarks) {
+            setMessage(`Please enter remarks to ${status === 'Faculty Approved' ? 'Approve' : 'Reject'}`);
+            return;
+        }
+        
+        setConfirmDialog({
+            open: true,
+            title: status === 'Faculty Approved' ? 'Approve Request' : 'Reject Request',
+            description: `Are you sure you want to ${status === 'Faculty Approved' ? 'Approve' : 'Reject'} this request?`,
+            type: status === 'Faculty Approved' ? 'warning' : 'danger',
+            action: () => executeAction(requestId, status)
+        });
     };
 
     const getStatusProps = (status) => {
@@ -217,7 +236,7 @@ const FacultyRequests = () => {
                                                                         size="small"
                                                                         fullWidth
                                                                         startIcon={<CheckCircle size={16} />}
-                                                                        onClick={() => handleAction(request.requestId, 'Faculty Approved')}
+                                                                        onClick={() => handleActionClick(request.requestId, 'Faculty Approved')}
                                                                         sx={{ fontWeight: 'bold', boxShadow: 2 }}
                                                                     >
                                                                         Approve
@@ -228,7 +247,7 @@ const FacultyRequests = () => {
                                                                         size="small"
                                                                         fullWidth
                                                                         startIcon={<XCircle size={16} />}
-                                                                        onClick={() => handleAction(request.requestId, 'Rejected')}
+                                                                        onClick={() => handleActionClick(request.requestId, 'Rejected')}
                                                                         sx={{ fontWeight: 'bold', boxShadow: 2 }}
                                                                     >
                                                                         Reject
@@ -286,6 +305,17 @@ const FacultyRequests = () => {
                     </Box>
                 </Dialog>
             </Box>
+            <ConfirmDialog 
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                description={confirmDialog.description}
+                type={confirmDialog.type}
+                confirmText={confirmDialog.type === 'danger' ? 'Yes, Reject' : 'Yes, Approve'}
+                onConfirm={() => {
+                    if (confirmDialog.action) confirmDialog.action();
+                }}
+                onClose={closeConfirmDialog}
+            />
         </Layout>
     );
 };

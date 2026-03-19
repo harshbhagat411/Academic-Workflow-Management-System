@@ -7,6 +7,7 @@ import {
     Chip, Tooltip, Dialog
 } from '@mui/material';
 import Layout from '../components/Layout';
+import ConfirmDialog from '../components/ConfirmDialog';
 import axios from 'axios';
 import { LayoutDashboard, Users, LogOut, FileText, Upload, Shield, Clock, Search } from 'lucide-react';
 import SecuritySection from '../components/SecuritySection';
@@ -149,6 +150,8 @@ const UserTable = ({ data, type, searchTerm, setSearchTerm, semesterFilter, setS
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', description: '', type: 'default', action: null });
+    const closeConfirmDialog = () => setConfirmDialog(prev => ({ ...prev, open: false }));
     const [activeTab, setActiveTab] = useState('overview');
     const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
     const [users, setUsers] = useState([]);
@@ -449,16 +452,23 @@ const AdminDashboard = () => {
     };
 
     const handleDeleteLecture = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this lecture?')) return;
-        try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/timetable/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            fetchTimetable();
-        } catch (err) {
-            alert('Error deleting lecture');
-        }
+        setConfirmDialog({
+            open: true,
+            title: 'Delete Lecture',
+            description: 'Are you sure you want to delete this lecture?',
+            type: 'danger',
+            action: async () => {
+                try {
+                    const token = localStorage.getItem('token');
+                    await axios.delete(`http://localhost:5000/api/timetable/${id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    fetchTimetable();
+                } catch (err) {
+                    alert('Error deleting lecture');
+                }
+            }
+        });
     };
 
     const handleCopyTimetable = async () => {
@@ -540,16 +550,23 @@ const AdminDashboard = () => {
     };
 
     const handleDeleteSubject = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this subject?')) return;
-        try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/subjects/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            fetchSubjects();
-        } catch (err) {
-            console.error('Error deleting subject:', err);
-        }
+        setConfirmDialog({
+            open: true,
+            title: 'Delete Subject',
+            description: 'Are you sure you want to delete this subject?',
+            type: 'danger',
+            action: async () => {
+                try {
+                    const token = localStorage.getItem('token');
+                    await axios.delete(`http://localhost:5000/api/subjects/${id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    fetchSubjects();
+                } catch (err) {
+                    console.error('Error deleting subject:', err);
+                }
+            }
+        });
     };
 
     const fetchMentorAllocations = async () => {
@@ -656,21 +673,34 @@ const AdminDashboard = () => {
     const toggleUserStatus = async (userId, currentStatus, role) => {
         if (role === 'Admin') return;
 
-        try {
-            const newStatus = currentStatus === 'Deactivated' ? 'Active' : 'Deactivated';
-            const token = localStorage.getItem('token');
+        const newStatus = currentStatus === 'Deactivated' ? 'Active' : 'Deactivated';
+        const executeToggle = async () => {
+            try {
+                const token = localStorage.getItem('token');
 
-            await axios.patch(`http://localhost:5000/api/users/${userId}/status`,
-                { status: newStatus },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+                await axios.patch(`http://localhost:5000/api/users/${userId}/status`,
+                    { status: newStatus },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
 
-            // Refresh list based on current view
-            if (activeTab === 'staff') fetchStaffList();
-            if (activeTab === 'students') fetchStudentList();
-        } catch (error) {
-            console.error('Error updating status:', error);
-            alert(error.response?.data?.message || 'Failed to update status');
+                if (activeTab === 'staff') fetchStaffList();
+                if (activeTab === 'students') fetchStudentList();
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert(error.response?.data?.message || 'Failed to update status');
+            }
+        };
+
+        if (newStatus === 'Deactivated') {
+            setConfirmDialog({
+                open: true,
+                title: `Deactivate ${role}`,
+                description: `Are you sure you want to deactivate this user? They will not be able to log in.`,
+                type: 'danger',
+                action: executeToggle
+            });
+        } else {
+            executeToggle(); // Activate immediately
         }
     };
 
@@ -1703,6 +1733,17 @@ const AdminDashboard = () => {
             }
 
             {activeTab === 'profile' && <ProfileSection />}
+            <ConfirmDialog 
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                description={confirmDialog.description}
+                type={confirmDialog.type}
+                confirmText={confirmDialog.type === 'danger' ? 'Yes, Continue' : 'Confirm'}
+                onConfirm={() => {
+                    if (confirmDialog.action) confirmDialog.action();
+                }}
+                onClose={closeConfirmDialog}
+            />
         </Layout>
     );
 };
