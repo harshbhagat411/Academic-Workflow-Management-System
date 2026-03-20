@@ -66,7 +66,7 @@ const ProfileSection = () => {
             <Card sx={{ borderRadius: 3, boxShadow: 2, overflow: 'hidden' }}>
                 <Box sx={{ bgcolor: 'primary.main', p: { xs: 3, sm: 4 }, color: 'primary.contrastText' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-                        <Avatar sx={{ width: 80, height: 80, bgcolor: 'primary.light', color: 'primary.main' }}>
+                        <Avatar sx={{ width: 80, height: 80, bgcolor: 'primary.light', color: 'primary.dark' }}>
                             <User size={40} />
                         </Avatar>
                         <Box sx={{ flex: 1, minWidth: 200 }}>
