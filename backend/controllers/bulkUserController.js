@@ -55,7 +55,7 @@ const uploadBulkUsers = async (req, res) => {
                         role: capitalize(rawRow.role?.trim()), // student -> Student
                         gender: capitalize(rawRow.gender?.trim()), // male -> Male
                         phone: rawRow.phone?.trim(),
-                        department: rawRow.department?.trim() || 'Computer Science',
+                        department: 'Computer Science',
                         semester: rawRow.semester?.trim(),
                         specialization: rawRow.specialization?.trim()
                     };

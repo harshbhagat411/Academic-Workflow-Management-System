@@ -20,7 +20,7 @@ exports.createUser = async (req, res) => {
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: 'Email already registered' });
 
-        let department = role === 'Faculty' && specialization ? specialization : 'General';
+        let department = 'Computer Science';
         const prefix = role === 'Student' ? 'STU' : 'FAC';
         const userId = `${prefix}-${Date.now()}`;
 
