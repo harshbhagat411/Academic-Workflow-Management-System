@@ -3,7 +3,7 @@ import {
     Badge, IconButton, Popover, List, ListItem, ListItemText, 
     Typography, Box, CircularProgress, Divider, ListItemAvatar, Avatar 
 } from '@mui/material';
-import { Bell, FileText, CheckCircle, Info } from 'lucide-react';
+import { Bell, FileText, CheckCircle, Info, MessageSquare } from 'lucide-react';
 import axios from 'axios';
 
 const NotificationBell = () => {
@@ -82,6 +82,7 @@ const NotificationBell = () => {
         switch(type) {
             case 'request': return <FileText size={20} color="#1976d2" />;
             case 'assignment': return <CheckCircle size={20} color="#2e7d32" />;
+            case 'chat': return <MessageSquare size={20} color="#9c27b0" />;
             default: return <Info size={20} color="#ed6c02" />;
         }
     };

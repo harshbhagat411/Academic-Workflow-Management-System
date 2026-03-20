@@ -2,6 +2,8 @@ const socketIo = require('socket.io');
 const jwt = require('jsonwebtoken');
 const ChatMessage = require('./models/ChatMessage');
 const ChatRoom = require('./models/ChatRoom');
+const Notification = require('./models/Notification');
+const User = require('./models/User');
 const { encrypt } = require('./utils/encryption');
 
 let io;
@@ -56,10 +58,34 @@ const initSocket = (server) => {
                 await newMessage.save();
 
                 // Update ChatRoom lastMessage
-                await ChatRoom.findByIdAndUpdate(roomId, {
+                const updatedRoom = await ChatRoom.findByIdAndUpdate(roomId, {
                     lastMessage: newMessage._id,
                     updatedAt: Date.now()
+                }).populate('studentId guideId');
+
+                // Determine Receiver ID
+                const receiverId = socket.user.role === 'Student' ? updatedRoom.guideId._id : updatedRoom.studentId._id;
+                
+                // Fetch Sender Name for Notification text
+                const sender = await User.findById(socket.user.id);
+
+                // Create non-flooding DB Notification explicitly for the Bell Pannel
+                const notificationMsg = `New message from ${sender.name}`;
+                const existingNotif = await Notification.findOne({
+                    userId: receiverId,
+                    type: 'chat',
+                    message: notificationMsg,
+                    isRead: false
                 });
+
+                if (!existingNotif) {
+                    const notif = new Notification({
+                        userId: receiverId,
+                        message: notificationMsg,
+                        type: 'chat'
+                    });
+                    await notif.save();
+                }
 
                 // Emit to Room (decrypted/plain for display)
                 const messageToEmit = newMessage.toObject();
@@ -87,6 +113,19 @@ const initSocket = (server) => {
                 
                 // Broadcast that messages have been seen by this user
                 socket.to(roomId).emit('messagesSeen', { roomId, seenBy: socket.user.id });
+
+                // Also clear any linked 'chat' notifications intended for this exact room sender
+                const room = await ChatRoom.findById(roomId).populate('studentId guideId');
+                const senderId = socket.user.role === 'Student' ? room.guideId._id : room.studentId._id;
+                const sender = await User.findById(senderId);
+
+                await Notification.updateMany({
+                    userId: socket.user.id,
+                    type: 'chat',
+                    message: `New message from ${sender.name}`,
+                    isRead: false
+                }, { $set: { isRead: true } });
+
             } catch (err) {
                 console.error('Error marking seen:', err);
             }
