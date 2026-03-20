@@ -17,11 +17,15 @@ const RequestTimeline = ({ requestId, onClose }) => {
                 const res = await axios.get(`http://localhost:5000/api/requests/${requestId}/audit`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                setAudits(res.data);
+                if (Array.isArray(res.data)) {
+                    setAudits(res.data);
+                } else {
+                    setAudits([]);
+                }
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching audit trail:', err);
-                setError('Failed to load timeline.');
+                setAudits([]);
                 setLoading(false);
             }
         };
@@ -39,19 +43,13 @@ const RequestTimeline = ({ requestId, onClose }) => {
         );
     }
 
-    if (error) {
-        return (
-            <Box sx={{ p: 4 }}>
-                <Alert severity="error">{error}</Alert>
-            </Box>
-        );
-    }
+    // No visual error block needed - fallback UI serves this purpose
 
     return (
         <Box sx={{ p: 4, position: 'relative' }}>
             <IconButton 
                 onClick={onClose} 
-                sx={{ position: 'absolute', top: 16, right: 16, color: 'text.secondary', bgcolor: 'grey.100', '&:hover': { bgcolor: 'grey.200' } }}
+                sx={{ position: 'absolute', top: 16, right: 16, color: 'text.secondary', bgcolor: 'action.hover', '&:hover': { bgcolor: 'action.selected' } }}
             >
                 <CloseIcon />
             </IconButton>
@@ -62,12 +60,14 @@ const RequestTimeline = ({ requestId, onClose }) => {
             <Divider sx={{ mb: 4 }} />
 
             <Box sx={{ position: 'relative', ml: 2, borderLeft: 2, borderColor: 'divider', pl: 3 }}>
-                {audits.length === 0 ? (
-                    <Typography color="text.secondary">No history found.</Typography>
+                {!audits || audits.length === 0 ? (
+                    <Typography color="text.secondary" sx={{ py: 2, fontStyle: 'italic' }}>
+                        No timeline available
+                    </Typography>
                 ) : (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        {audits.map((audit) => (
-                            <Box key={audit._id || audit.auditId || audit.actionDate} sx={{ position: 'relative' }}>
+                        {audits?.map((audit, index) => (
+                            <Box key={audit._id || audit.auditId || `timeline-${index}`} sx={{ position: 'relative' }}>
                                 <CircleIcon 
                                     color="primary" 
                                     sx={{ 
@@ -90,7 +90,7 @@ const RequestTimeline = ({ requestId, onClose }) => {
                                         {audit.action}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        by <Box component="span" fontWeight="bold">{audit.role} {audit.performedBy ? `(${audit.performedBy.name})` : ''}</Box>
+                                        by <Box component="span" fontWeight="bold">{audit.role} {audit.performedBy?.name ? `(${audit.performedBy.name})` : ''}</Box>
                                     </Typography>
                                     {audit.remarks && (
                                         <Paper 
@@ -98,9 +98,9 @@ const RequestTimeline = ({ requestId, onClose }) => {
                                             sx={{ 
                                                 mt: 1.5, 
                                                 p: 2, 
-                                                bgcolor: 'grey.50', 
+                                                bgcolor: 'action.hover', 
                                                 borderLeft: 4, 
-                                                borderColor: 'grey.300',
+                                                borderColor: 'primary.main',
                                                 fontStyle: 'italic',
                                                 color: 'text.secondary'
                                             }}

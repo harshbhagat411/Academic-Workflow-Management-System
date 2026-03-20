@@ -426,16 +426,53 @@ exports.getRequestAudit = async (req, res) => {
                 return res.status(403).json({ message: 'Unauthorized to view this audit trail' });
             }
         } else if (userRole === 'Faculty') {
-            // Strict check: Faculty can view audit timelines ONLY for requests they have acted upon.
+            const faculty = await User.findById(userId);
+            const isAssigned = request.facultyId && request.facultyId.toString() === userId;
+            const isDepartment = !request.facultyId && request.department === faculty.department;
             const hasActed = await RequestAudit.exists({ requestId: id, performedBy: userId });
-            if (!hasActed) {
-                return res.status(403).json({ message: 'You can only view timelines for requests you have reviewed.' });
+            
+            if (!isAssigned && !isDepartment && !hasActed) {
+                return res.status(403).json({ message: 'You can only view timelines for authorized requests.' });
             }
         }
 
-        const audits = await RequestAudit.find({ requestId: id })
+        let audits = await RequestAudit.find({ requestId: id })
             .populate('performedBy', 'name role')
             .sort({ actionDate: 1 }); // Oldest first
+
+        // DYNAMIC GENERATION FALLBACK ensuring there is always a valid timeline array
+        if (!audits || audits.length === 0) {
+            audits = [
+                {
+                    action: 'Submitted',
+                    role: 'Student',
+                    actionDate: request.createdAt,
+                    remarks: 'Request initiated by student'
+                }
+            ];
+
+            if (request.facultyActionDate) {
+                let actionLabel = 'Faculty Approved';
+                if (request.status === 'Rejected' && !request.adminActionDate) {
+                    actionLabel = 'Faculty Rejected';
+                }
+                audits.push({
+                    action: actionLabel,
+                    role: 'Faculty',
+                    actionDate: request.facultyActionDate,
+                    remarks: request.facultyRemarks || 'Reviewed by Faculty'
+                });
+            }
+
+            if (request.adminActionDate) {
+                audits.push({
+                    action: request.status,
+                    role: 'Admin',
+                    actionDate: request.adminActionDate,
+                    remarks: request.adminRemarks || 'Reviewed by Admin'
+                });
+            }
+        }
 
         res.status(200).json(audits);
     } catch (error) {

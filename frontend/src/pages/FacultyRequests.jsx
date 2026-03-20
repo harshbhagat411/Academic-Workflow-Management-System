@@ -292,12 +292,6 @@ const FacultyRequests = () => {
                     PaperProps={{ sx: { borderRadius: 3, bgcolor: 'background.paper', backgroundImage: 'none' } }}
                 >
                     <Box sx={{ position: 'relative' }}>
-                        <IconButton 
-                            onClick={() => setSelectedRequestId(null)} 
-                            sx={{ position: 'absolute', right: 8, top: 8, zIndex: 1, bgcolor: 'background.default' }}
-                        >
-                            <Close size={20} />
-                        </IconButton>
                         <RequestTimeline
                             requestId={selectedRequestId}
                             onClose={() => setSelectedRequestId(null)}
