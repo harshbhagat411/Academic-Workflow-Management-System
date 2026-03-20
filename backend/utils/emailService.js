@@ -70,3 +70,25 @@ exports.sendPasswordResetEmail = async (email, otp) => {
         console.error('Error sending OTP email:', error);
     }
 };
+
+exports.sendEmail = async ({ to, subject, html }) => {
+    try {
+        const transporter = createTransporter();
+        if (!transporter) {
+            console.log(`[MOCK EMAIL] To: ${to} | Subject: ${subject}`);
+            return;
+        }
+
+        const mailOptions = {
+            from: '"Academic System" <no-reply@college.edu>',
+            to,
+            subject,
+            html
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`Email sent to ${to}: ${subject}`);
+    } catch (error) {
+        console.error('Error sending email:', error);
+    }
+};

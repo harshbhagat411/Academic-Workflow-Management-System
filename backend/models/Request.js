@@ -28,6 +28,7 @@ const requestSchema = new mongoose.Schema({
     adminRemarks: { type: String },
     adminActionDate: { type: Date },
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    facultyId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     createdAt: { type: Date, default: Date.now },
 
     // SLA & Delay Tracking

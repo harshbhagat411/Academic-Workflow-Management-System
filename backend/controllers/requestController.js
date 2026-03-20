@@ -1,8 +1,11 @@
 const Request = require('../models/Request');
 const RequestAudit = require('../models/RequestAudit');
 const User = require('../models/User'); // Required for fetching department
+const MentorAllocation = require('../models/MentorAllocation');
+const Notification = require('../models/Notification');
 const { v4: uuidv4 } = require('uuid');
 const { validateRequest } = require('../utils/ruleEngine');
+const { sendEmail } = require('../utils/emailService');
 
 // SLA Constants
 const FACULTY_SLA_DAYS = 3;
@@ -47,6 +50,16 @@ exports.createRequest = async (req, res) => {
             finalDescription = `${description} \n\n[System Note: Leave Duration: ${diffDays} Days (${startDate} to ${endDate})]`;
         }
 
+        // Force department mapping to fix General student data
+        const requestDepartment = (student.department === 'General' || !student.department) ? 'Computer Science' : student.department;
+
+        // Resolve Assigned Faculty (Mentor)
+        const allocation = await MentorAllocation.findOne({ studentId: student._id });
+        let resolvedFacultyId = null;
+        if (allocation && allocation.mentorId) {
+            resolvedFacultyId = allocation.mentorId;
+        }
+
         const newRequest = new Request({
             requestId,
             requestType,
@@ -54,11 +67,13 @@ exports.createRequest = async (req, res) => {
             startDate: requestType === 'Leave Application' ? startDate : undefined,
             endDate: requestType === 'Leave Application' ? endDate : undefined,
             studentId,
-            department: student.department || 'Computer Science', // Fallback for old users
+            department: requestDepartment,
+            facultyId: resolvedFacultyId,
             facultyActionDueAt: facultyDue
         });
 
         await newRequest.save();
+        console.log(`[DEBUG] Save Request: assigned to facultyId: ${resolvedFacultyId}`);
 
         // AUDIT LOG: Submitted
         const auditLog = new RequestAudit({
@@ -70,6 +85,59 @@ exports.createRequest = async (req, res) => {
             remarks: 'Request initiated by student'
         });
         await auditLog.save();
+
+        // Notification Logic
+        try {
+            if (resolvedFacultyId) {
+                // Notifying specific mentor
+                const faculty = await User.findById(resolvedFacultyId);
+                console.log(`[DEBUG] Triggering explicit notification for specific mentor: ${resolvedFacultyId}`);
+                if (faculty) {
+                    await Notification.create({
+                        userId: faculty._id,
+                        message: `New mapped request from ${student.name}`,
+                        type: 'request'
+                    });
+
+                    if (faculty.email) {
+                        await sendEmail({
+                            to: faculty.email,
+                            subject: 'New Academic Request',
+                            html: `
+                                <h3>Update from Academic System</h3>
+                                <p>New mapped request from your mentee ${student.name}</p>
+                                <p>Please login to the system for more details.</p>
+                            `
+                        });
+                    }
+                }
+            } else {
+                // Notifying the entire department
+                console.log(`[DEBUG] Triggering department-wide notification for department: ${requestDepartment}`);
+                const deptFaculties = await User.find({ role: 'Faculty', department: requestDepartment });
+                for (const faculty of deptFaculties) {
+                    await Notification.create({
+                        userId: faculty._id,
+                        message: `New department request from ${student.name}`,
+                        type: 'request'
+                    });
+
+                    if (faculty.email) {
+                        await sendEmail({
+                            to: faculty.email,
+                            subject: 'New Academic Request',
+                            html: `
+                                <h3>Update from Academic System</h3>
+                                <p>New department request from ${student.name}</p>
+                                <p>Please login to the system for more details.</p>
+                            `
+                        });
+                    }
+                }
+            }
+        } catch (notifErr) {
+            console.error('Notification error:', notifErr);
+        }
 
         res.status(201).json({ message: 'Request submitted successfully', request: newRequest });
     } catch (error) {
@@ -105,7 +173,11 @@ exports.getAllRequests = async (req, res) => {
         const isArchived = archived === 'true';
 
         let query = {
-            department: faculty.department
+            $or: [
+                { facultyId: facultyId }, // Newly assigned requests
+                { facultyId: null, department: faculty.department }, // Unassigned 
+                { facultyId: { $exists: false }, department: faculty.department } // Legacy
+            ]
         };
 
         if (!isArchived) {
@@ -186,6 +258,34 @@ exports.updateRequestStatus = async (req, res) => {
             remarks: remarks
         });
         await auditLog.save();
+
+        // Notification Logic
+        try {
+            const student = await User.findById(request.studentId);
+            const actionText = status === 'Faculty Approved' ? 'approved' : 'rejected';
+            
+            if (student) {
+                await Notification.create({
+                    userId: student._id,
+                    message: `Your request has been ${actionText}`,
+                    type: 'request'
+                });
+
+                if (student.email) {
+                    await sendEmail({
+                        to: student.email,
+                        subject: `Request ${actionText === 'approved' ? 'Approved' : 'Rejected'}`,
+                        html: `
+                            <h3>Update from Academic System</h3>
+                            <p>Your request has been ${actionText}</p>
+                            <p>Please login to the system for more details.</p>
+                        `
+                    });
+                }
+            }
+        } catch (notifErr) {
+            console.error('Notification error:', notifErr);
+        }
 
         res.status(200).json({ message: 'Request updated successfully', request });
     } catch (error) {

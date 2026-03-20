@@ -1,0 +1,61 @@
+{
+  "latestReq": {
+    "_id": "69bd3e096219cc1dd7a2d265",
+    "requestId": "REQ-865515-164",
+    "requestType": "ID Card Replacement",
+    "description": "my old id card got stollen ",
+    "department": "General",
+    "status": "Submitted",
+    "isArchived": false,
+    "archivedAt": null,
+    "studentId": "69af1fc106ade729054f73e7",
+    "facultyActionDueAt": "2026-03-23T12:31:05.515Z",
+    "isFacultyDelayed": false,
+    "isAdminDelayed": false,
+    "delayReason": "NONE",
+    "createdAt": "2026-03-20T12:31:05.516Z",
+    "__v": 0
+  },
+  "faculties": [
+    {
+      "id": "698dd4e74dda760553a8352e",
+      "department": "Computer Science"
+    },
+    {
+      "id": "698dd4e74dda760553a83532",
+      "department": "Computer Science"
+    },
+    {
+      "id": "698dd4e74dda760553a83536",
+      "department": "Computer Science"
+    },
+    {
+      "id": "698dd4e74dda760553a8353a",
+      "department": "Computer Science"
+    },
+    {
+      "id": "698dd4e74dda760553a8353e",
+      "department": "Computer Science"
+    },
+    {
+      "id": "698dd4e74dda760553a83542",
+      "department": "Computer Science"
+    },
+    {
+      "id": "698dd4e74dda760553a83546",
+      "department": "Computer Science"
+    },
+    {
+      "id": "698dd4e74dda760553a8354a",
+      "department": "Computer Science"
+    },
+    {
+      "id": "698dd4e84dda760553a8354e",
+      "department": "Computer Science"
+    },
+    {
+      "id": "698dd4e84dda760553a83552",
+      "department": "Computer Science"
+    }
+  ]
+}

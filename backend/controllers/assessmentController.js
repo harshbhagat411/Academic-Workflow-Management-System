@@ -2,6 +2,8 @@ const Assessment = require('../models/Assessment');
 const StudentMark = require('../models/StudentMark');
 const Subject = require('../models/Subject');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
+const { sendEmail } = require('../utils/emailService');
 
 // Create a new assessment
 exports.createAssessment = async (req, res) => {
@@ -128,7 +130,39 @@ exports.saveMarks = async (req, res) => {
 exports.lockAssessment = async (req, res) => {
     try {
         const { assessmentId } = req.params;
-        const assessment = await Assessment.findByIdAndUpdate(assessmentId, { status: 'Locked' }, { new: true });
+        const assessment = await Assessment.findByIdAndUpdate(assessmentId, { status: 'Locked' }, { new: true }).populate('subjectId');
+        
+        // Notification Logic
+        try {
+            const marks = await StudentMark.find({ assessmentId }).populate('studentId');
+            const subjectName = assessment.subjectId ? assessment.subjectId.name : 'Unknown Subject';
+
+            for (const record of marks) {
+                if (record.studentId) {
+                    await Notification.create({
+                        userId: record.studentId._id,
+                        message: `Your marks for ${subjectName} have been published`,
+                        type: 'assignment'
+                    });
+
+                    if (record.studentId.email) {
+                        await sendEmail({
+                            to: record.studentId.email,
+                            subject: 'Marks Published',
+                            html: `
+                                <h3>Update from Academic System</h3>
+                                <p>Your marks for ${subjectName} have been published.</p>
+                                <p>Marks Obtained: <b>${record.marksObtained}</b> / ${assessment.maxMarks}</p>
+                                <p>Please login to the system dashboard for more details.</p>
+                            `
+                        });
+                    }
+                }
+            }
+        } catch (notifErr) {
+            console.error('Notification error:', notifErr);
+        }
+
         res.json(assessment);
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error });

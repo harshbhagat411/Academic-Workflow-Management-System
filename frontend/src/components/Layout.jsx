@@ -14,6 +14,7 @@ const drawerWidth = 260;
 
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
+import NotificationBell from './NotificationBell';
 
 const Layout = ({ role, activeTab, setActiveTab, children }) => {
     const { logout } = useAuth();
@@ -180,6 +181,7 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
                         {role} Portal
                     </Typography>
+                    <NotificationBell />
                 </Toolbar>
             </AppBar>
 

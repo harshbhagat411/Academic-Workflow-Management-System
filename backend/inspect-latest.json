@@ -1,0 +1,17 @@
+{
+  "request": {
+    "id": "69bd4a789b02a748f918afd2",
+    "requestId": "REQ-048185-341",
+    "studentId": "698e248152d7e33a403ceb0d",
+    "department": "Computer Science",
+    "status": "Submitted",
+    "isArchived": false,
+    "facultyId": "698dd4e74dda760553a8352e",
+    "assignedFacultyInfo": {
+      "_id": "698dd4e74dda760553a8352e",
+      "loginId": "FC2026S002",
+      "name": "Dr. Rahul Mehta",
+      "department": "Computer Science"
+    }
+  }
+}

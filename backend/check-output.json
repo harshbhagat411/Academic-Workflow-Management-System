@@ -1,0 +1,188 @@
+{
+  "requests": [
+    {
+      "_id": "69bd3f8c3c9c5c22ad5a4632",
+      "requestId": "REQ-252188-519",
+      "requestType": "Re-evaluation Request",
+      "description": "sir i need help with my subject maths ",
+      "department": "Computer Science",
+      "status": "Submitted",
+      "isArchived": false,
+      "archivedAt": null,
+      "studentId": {
+        "_id": "698e248152d7e33a403ceb0d",
+        "name": "Aadhya Nair"
+      },
+      "facultyId": {
+        "_id": "698dd4e74dda760553a8352e",
+        "loginId": "FC2026S002",
+        "name": "Dr. Rahul Mehta",
+        "email": "rahul@college.com"
+      },
+      "facultyActionDueAt": "2026-03-23T12:37:32.188Z",
+      "isFacultyDelayed": false,
+      "isAdminDelayed": false,
+      "delayReason": "NONE",
+      "createdAt": "2026-03-20T12:37:32.237Z",
+      "__v": 0
+    },
+    {
+      "_id": "69bd3f883c9c5c22ad5a4627",
+      "requestId": "REQ-248378-157",
+      "requestType": "Re-evaluation Request",
+      "description": "sir i need help with my subject maths ",
+      "department": "Computer Science",
+      "status": "Submitted",
+      "isArchived": false,
+      "archivedAt": null,
+      "studentId": {
+        "_id": "698e248152d7e33a403ceb0d",
+        "name": "Aadhya Nair"
+      },
+      "facultyId": {
+        "_id": "698dd4e74dda760553a8352e",
+        "loginId": "FC2026S002",
+        "name": "Dr. Rahul Mehta",
+        "email": "rahul@college.com"
+      },
+      "facultyActionDueAt": "2026-03-23T12:37:28.378Z",
+      "isFacultyDelayed": false,
+      "isAdminDelayed": false,
+      "delayReason": "NONE",
+      "createdAt": "2026-03-20T12:37:28.799Z",
+      "__v": 0
+    },
+    {
+      "_id": "69bd3f266219cc1dd7a2d318",
+      "requestId": "REQ-150034-577",
+      "requestType": "Bonafide Certificate",
+      "description": "sir i need bonofide cirtificate\n",
+      "department": "General",
+      "status": "Submitted",
+      "isArchived": false,
+      "archivedAt": null,
+      "studentId": {
+        "_id": "69af1fc106ade729054f73e7",
+        "name": "harsh bhagat"
+      },
+      "facultyActionDueAt": "2026-03-23T12:35:50.034Z",
+      "isFacultyDelayed": false,
+      "isAdminDelayed": false,
+      "delayReason": "NONE",
+      "createdAt": "2026-03-20T12:35:50.035Z",
+      "__v": 0
+    },
+    {
+      "_id": "69bd3e096219cc1dd7a2d265",
+      "requestId": "REQ-865515-164",
+      "requestType": "ID Card Replacement",
+      "description": "my old id card got stollen ",
+      "department": "General",
+      "status": "Submitted",
+      "isArchived": false,
+      "archivedAt": null,
+      "studentId": {
+        "_id": "69af1fc106ade729054f73e7",
+        "name": "harsh bhagat"
+      },
+      "facultyActionDueAt": "2026-03-23T12:31:05.515Z",
+      "isFacultyDelayed": false,
+      "isAdminDelayed": false,
+      "delayReason": "NONE",
+      "createdAt": "2026-03-20T12:31:05.516Z",
+      "__v": 0
+    },
+    {
+      "_id": "69bd3ab06219cc1dd7a2cff2",
+      "requestId": "REQ-008312-614",
+      "requestType": "Re-evaluation Request",
+      "description": "jkjknjklnjlsnsjlnjlcnsa",
+      "department": "Computer Science",
+      "status": "Submitted",
+      "isArchived": false,
+      "archivedAt": null,
+      "studentId": {
+        "_id": "698e248052d7e33a403ceb01",
+        "name": "Ishaan Bansal"
+      },
+      "facultyActionDueAt": "2026-03-23T12:16:48.313Z",
+      "isFacultyDelayed": false,
+      "isAdminDelayed": false,
+      "delayReason": "NONE",
+      "createdAt": "2026-03-20T12:16:48.316Z",
+      "__v": 0
+    }
+  ],
+  "faculties": [
+    {
+      "_id": "698dd4e74dda760553a8352e",
+      "loginId": "FC2026S002",
+      "name": "Dr. Rahul Mehta",
+      "email": "rahul@college.com",
+      "department": "Computer Science"
+    },
+    {
+      "_id": "698dd4e74dda760553a83532",
+      "loginId": "FC2026S003",
+      "name": "Prof. Sneha Patel",
+      "email": "sneha@college.com",
+      "department": "Computer Science"
+    },
+    {
+      "_id": "698dd4e74dda760553a83536",
+      "loginId": "FC2026S004",
+      "name": "Dr. Kunal Shah",
+      "email": "kunal@college.com",
+      "department": "Computer Science"
+    },
+    {
+      "_id": "698dd4e74dda760553a8353a",
+      "loginId": "FC2026S005",
+      "name": "Prof. Priya Desai",
+      "email": "priya@college.com",
+      "department": "Computer Science"
+    },
+    {
+      "_id": "698dd4e74dda760553a8353e",
+      "loginId": "FC2026S006",
+      "name": "Dr. Amit Joshi",
+      "email": "amit@college.com",
+      "department": "Computer Science"
+    },
+    {
+      "_id": "698dd4e74dda760553a83542",
+      "loginId": "FC2026S007",
+      "name": "Prof. Neha Verma",
+      "email": "neha@college.com",
+      "department": "Computer Science"
+    },
+    {
+      "_id": "698dd4e74dda760553a83546",
+      "loginId": "FC2026S008",
+      "name": "Dr. Arjun Nair",
+      "email": "arjun@college.com",
+      "department": "Computer Science"
+    },
+    {
+      "_id": "698dd4e74dda760553a8354a",
+      "loginId": "FC2026S009",
+      "name": "Prof. Kavita Rao",
+      "email": "kavita@college.com",
+      "department": "Computer Science"
+    },
+    {
+      "_id": "698dd4e84dda760553a8354e",
+      "loginId": "FC2026S010",
+      "name": "Dr. Rohan Iyer",
+      "email": "rohan@college.com",
+      "department": "Computer Science"
+    },
+    {
+      "_id": "698dd4e84dda760553a83552",
+      "loginId": "FC2026S011",
+      "name": "Prof. Anjali Sharma",
+      "email": "anjali@college.com",
+      "department": "Computer Science"
+    }
+  ]
+}

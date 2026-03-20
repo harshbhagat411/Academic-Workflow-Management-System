@@ -1,0 +1,71 @@
+{
+  "query": {
+    "$or": [
+      {
+        "facultyId": "698dd4e74dda760553a8352e"
+      },
+      {
+        "facultyId": null,
+        "department": "Computer Science"
+      },
+      {
+        "facultyId": {
+          "$exists": false
+        },
+        "department": "Computer Science"
+      }
+    ],
+    "isArchived": false,
+    "status": "Submitted"
+  },
+  "count": 14,
+  "facultyInfo": "Dr. Rahul Mehta",
+  "requests": [
+    {
+      "id": "REQ-069522-104",
+      "facultyId": "698dd4e74dda760553a8352e"
+    },
+    {
+      "id": "REQ-800591-856",
+      "facultyId": "698dd4e74dda760553a8352e"
+    },
+    {
+      "id": "REQ-252188-519",
+      "facultyId": "698dd4e74dda760553a8352e"
+    },
+    {
+      "id": "REQ-248378-157",
+      "facultyId": "698dd4e74dda760553a8352e"
+    },
+    {
+      "id": "REQ-354385-145"
+    },
+    {
+      "id": "REQ-349479-917"
+    },
+    {
+      "id": "REQ-743217-656-43"
+    },
+    {
+      "id": "REQ-743217-297-45"
+    },
+    {
+      "id": "REQ-743217-413-59"
+    },
+    {
+      "id": "REQ-743217-805-66"
+    },
+    {
+      "id": "REQ-743217-349-32"
+    },
+    {
+      "id": "REQ-743217-802-58"
+    },
+    {
+      "id": "REQ-743217-195-88"
+    },
+    {
+      "id": "REQ-743217-369-19"
+    }
+  ]
+}
