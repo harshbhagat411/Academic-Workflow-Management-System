@@ -11,6 +11,7 @@ export const ChatProvider = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState([]);
     const [totalUnreadCount, setTotalUnreadCount] = useState(0);
+    const [typingStatus, setTypingStatus] = useState({});
     const socketRef = useRef();
 
     useEffect(() => {
@@ -51,21 +52,27 @@ export const ChatProvider = ({ children }) => {
 
         // Global message listener for unread count
         const handleGlobalMessage = (message) => {
-            // Assume if we receive a message globally, we check if it's from someone else
-            // The active chat window will handle decrementing if it's open
-            const userId = localStorage.getItem('userId'); // Assuming we can decode or just rely on senderRole logic in component
-            // We just increment globally here, and let the active room specific component 
-            // reset it or subtract it if the room is currently open.
             setTotalUnreadCount(prev => prev + 1);
         };
 
         socketRef.current.on('receive_message', handleGlobalMessage);
+
+        // Typing Listeners
+        socketRef.current.on('user_typing', ({ roomId }) => {
+            setTypingStatus(prev => ({ ...prev, [roomId]: true }));
+        });
+
+        socketRef.current.on('user_stopped_typing', ({ roomId }) => {
+            setTypingStatus(prev => ({ ...prev, [roomId]: false }));
+        });
 
         setSocket(socketRef.current);
 
         return () => {
             if (socketRef.current) {
                 socketRef.current.off('receive_message', handleGlobalMessage);
+                socketRef.current.off('user_typing');
+                socketRef.current.off('user_stopped_typing');
                 socketRef.current.disconnect();
             }
         };
@@ -80,7 +87,8 @@ export const ChatProvider = ({ children }) => {
         isConnected,
         totalUnreadCount,
         setTotalUnreadCount,
-        decrementUnreadCount
+        decrementUnreadCount,
+        typingStatus
     };
 
     return (

@@ -9,13 +9,14 @@ import { Send, MessageSquare } from 'lucide-react';
 import Layout from '../components/Layout';
 
 const FacultyChat = () => {
-    const { socket, decrementUnreadCount, totalUnreadCount } = useChat();
+    const { socket, decrementUnreadCount, totalUnreadCount, typingStatus } = useChat();
     const [activeStudent, setActiveStudent] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [students, setStudents] = useState([]);
     const [room, setRoom] = useState(null);
     const messagesEndRef = useRef(null);
+    const typingTimeout = useRef(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -99,10 +100,8 @@ const FacultyChat = () => {
                 if (roomIndex !== -1 && students[roomIndex].unreadCount > 0) {
                     const countToClear = students[roomIndex].unreadCount;
                     
-                    // Update backend
-                    await axios.post('http://localhost:5000/api/chat/mark-read', { roomId: res.data._id }, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
+                    // Update backend via socket 'markAsSeen' (which handles both DB and broadcasting)
+                    socket.emit('markAsSeen', { roomId: res.data._id });
 
                     // Update frontend specific student list
                     setStudents(prev => {
@@ -131,12 +130,9 @@ const FacultyChat = () => {
                 setMessages((prev) => [...prev, message]);
                 scrollToBottom();
                 
-                // If it's a message received from the student (not from us), mark it read essentially
+                // If it's a message received from the student (not from us), mark it seen immediately
                 if (message.senderRole === 'Student') {
-                    const token = localStorage.getItem('token');
-                    axios.post('http://localhost:5000/api/chat/mark-read', { roomId: room._id }, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }).catch(err => console.error("Error implicitly marking msg read:", err));
+                    socket.emit('markAsSeen', { roomId: room._id });
                     
                     // Decrement the global count that ChatContext just incremented by 1
                     decrementUnreadCount(1);
@@ -170,11 +166,35 @@ const FacultyChat = () => {
                 return newStudents;
             });
         };
+
+        const handleMessagesSeen = ({ roomId }) => {
+            if (room && room._id === roomId) {
+                setMessages(prev => prev.map(msg => 
+                    (msg.senderRole === 'Faculty' && !msg.isSeen) ? { ...msg, isSeen: true } : msg
+                ));
+            }
+        };
+
         socket.on('receive_message', handleReceiveMessage);
+        socket.on('messagesSeen', handleMessagesSeen);
+        
         return () => {
             socket.off('receive_message', handleReceiveMessage);
+            socket.off('messagesSeen', handleMessagesSeen);
         };
     }, [socket, room, activeStudent, decrementUnreadCount]);
+
+    const handleMessageChange = (e) => {
+        setNewMessage(e.target.value);
+        if (!room || !socket) return;
+
+        socket.emit('typing', { roomId: room._id });
+
+        if (typingTimeout.current) clearTimeout(typingTimeout.current);
+        typingTimeout.current = setTimeout(() => {
+            socket.emit('stopTyping', { roomId: room._id });
+        }, 1500);
+    };
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
@@ -187,6 +207,9 @@ const FacultyChat = () => {
 
         await socket.emit('send_message', messageData);
         setNewMessage('');
+        
+        if (typingTimeout.current) clearTimeout(typingTimeout.current);
+        socket.emit('stopTyping', { roomId: room._id });
     };
 
     return (
@@ -330,11 +353,25 @@ const FacultyChat = () => {
                                                         }}
                                                     >
                                                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        {isMyMessage && (
+                                                            <span style={{ marginLeft: 4, letterSpacing: '-2px', fontSize: '11px', fontWeight: 'bold' }}>
+                                                                {msg.isSeen ? '✓✓' : (msg.isDelivered ? '✓' : '  ')}
+                                                            </span>
+                                                        )}
                                                     </Typography>
                                                 </Paper>
                                             </Box>
                                         );
                                     })}
+                                    {room && typingStatus[room._id] && (
+                                        <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                            <Paper elevation={0} sx={{ p: 1.5, borderRadius: 3, bgcolor: 'transparent' }}>
+                                                <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                                                    {activeStudent.name} is typing...
+                                                </Typography>
+                                            </Paper>
+                                        </Box>
+                                    )}
                                     <div ref={messagesEndRef} />
                                 </Box>
 
@@ -346,7 +383,7 @@ const FacultyChat = () => {
                                             variant="outlined"
                                             placeholder={`Message ${activeStudent.name}...`}
                                             value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
+                                            onChange={handleMessageChange}
                                             size="small"
                                             autoComplete="off"
                                             sx={{ 

@@ -49,7 +49,9 @@ const initSocket = (server) => {
                     senderId: socket.user.id,
                     senderRole: socket.user.role,
                     message: encryptedText,
-                    isRead: false
+                    isRead: false,
+                    isDelivered: true,
+                    isSeen: false
                 });
                 await newMessage.save();
 
@@ -70,10 +72,33 @@ const initSocket = (server) => {
             }
         });
 
-        // Mark Read (Real-time update)
+        // Mark Read (Legacy Real-time update)
         socket.on('mark_read', async (roomId) => {
-            // In a real app, you might want to granularly mark specific messages
             io.to(roomId).emit('messages_read', { userId: socket.user.id });
+        });
+
+        // Mark Seen (New logic)
+        socket.on('markAsSeen', async ({ roomId }) => {
+            try {
+                await ChatMessage.updateMany(
+                    { chatRoomId: roomId, senderId: { $ne: socket.user.id }, isSeen: false },
+                    { $set: { isSeen: true, isRead: true } }
+                );
+                
+                // Broadcast that messages have been seen by this user
+                socket.to(roomId).emit('messagesSeen', { roomId, seenBy: socket.user.id });
+            } catch (err) {
+                console.error('Error marking seen:', err);
+            }
+        });
+
+        // Typing Indicator
+        socket.on('typing', ({ roomId }) => {
+            socket.to(roomId).emit('user_typing', { roomId, userId: socket.user.id });
+        });
+
+        socket.on('stopTyping', ({ roomId }) => {
+            socket.to(roomId).emit('user_stopped_typing', { roomId, userId: socket.user.id });
         });
 
         socket.on('disconnect', () => {

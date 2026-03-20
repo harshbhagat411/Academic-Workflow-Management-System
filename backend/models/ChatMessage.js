@@ -29,6 +29,14 @@ const chatMessageSchema = new mongoose.Schema({
     isRead: {
         type: Boolean,
         default: false
+    },
+    isDelivered: {
+        type: Boolean,
+        default: true
+    },
+    isSeen: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 

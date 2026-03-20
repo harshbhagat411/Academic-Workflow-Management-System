@@ -9,12 +9,13 @@ import { Send, User } from 'lucide-react';
 import Layout from '../components/Layout';
 
 const ChatWithMentor = () => {
-    const { socket, decrementUnreadCount, totalUnreadCount } = useChat();
+    const { socket, decrementUnreadCount, totalUnreadCount, typingStatus } = useChat();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [room, setRoom] = useState(null);
     const [error, setError] = useState('');
     const messagesEndRef = useRef(null);
+    const typingTimeout = useRef(null);
     const [mentor, setMentor] = useState(null);
 
     const scrollToBottom = () => {
@@ -44,9 +45,7 @@ const ChatWithMentor = () => {
 
                     // If student has global unread messages, clear them physically and visually
                     if (totalUnreadCount > 0) {
-                        await axios.post('http://localhost:5000/api/chat/mark-read', { roomId: res.data._id }, {
-                            headers: { Authorization: `Bearer ${token}` }
-                        });
+                        socket.emit('markAsSeen', { roomId: res.data._id });
                         decrementUnreadCount(totalUnreadCount);
                     }
                 }
@@ -71,24 +70,43 @@ const ChatWithMentor = () => {
             setMessages((prev) => [...prev, message]);
             scrollToBottom();
             
-            // If message is from mentor, we are currently viewing it, so mark it read
+            // If message is from mentor, we are currently viewing it, so mark it seen
             if (message.senderRole === 'Faculty') {
-                const token = localStorage.getItem('token');
-                axios.post('http://localhost:5000/api/chat/mark-read', { roomId: room._id }, {
-                    headers: { Authorization: `Bearer ${token}` }
-                }).catch(err => console.error(err));
+                socket.emit('markAsSeen', { roomId: room._id });
                 
                 // Keep the global UI badge at 0 since context hook just incremented it
                 decrementUnreadCount(1);
             }
         };
 
+        const handleMessagesSeen = ({ roomId }) => {
+            if (room && room._id === roomId) {
+                setMessages(prev => prev.map(msg => 
+                    (msg.senderRole === 'Student' && !msg.isSeen) ? { ...msg, isSeen: true } : msg
+                ));
+            }
+        };
+
         socket.on('receive_message', handleReceiveMessage);
+        socket.on('messagesSeen', handleMessagesSeen);
 
         return () => {
             socket.off('receive_message', handleReceiveMessage);
+            socket.off('messagesSeen', handleMessagesSeen);
         };
-    }, [socket]);
+    }, [socket, room]);
+
+    const handleMessageChange = (e) => {
+        setNewMessage(e.target.value);
+        if (!room || !socket) return;
+
+        socket.emit('typing', { roomId: room._id });
+
+        if (typingTimeout.current) clearTimeout(typingTimeout.current);
+        typingTimeout.current = setTimeout(() => {
+            socket.emit('stopTyping', { roomId: room._id });
+        }, 1500);
+    };
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
@@ -101,6 +119,9 @@ const ChatWithMentor = () => {
 
         await socket.emit('send_message', messageData);
         setNewMessage('');
+        
+        if (typingTimeout.current) clearTimeout(typingTimeout.current);
+        socket.emit('stopTyping', { roomId: room._id });
     };
 
     if (error) {
@@ -162,13 +183,27 @@ const ChatWithMentor = () => {
                                         <Typography variant="body1" sx={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
                                             {msg.message}
                                         </Typography>
-                                        <Typography variant="caption" sx={{ display: 'block', textAlign: 'right', mt: 1, color: isMyMessage ? 'primary.contrastText' : 'text.secondary', fontSize: '0.7rem' }}>
+                                        <Typography variant="caption" sx={{ display: 'block', textAlign: 'right', mt: 1, color: isMyMessage ? 'primary.100' : 'text.disabled', fontSize: '0.65rem' }}>
                                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {isMyMessage && (
+                                                <span style={{ marginLeft: 4, letterSpacing: '-2px', fontSize: '11px', fontWeight: 'bold' }}>
+                                                    {msg.isSeen ? '✓✓' : (msg.isDelivered ? '✓' : '  ')}
+                                                </span>
+                                            )}
                                         </Typography>
                                     </Paper>
                                 </Box>
                             );
                         })}
+                        {room && typingStatus[room._id] && (
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
+                                <Paper elevation={0} sx={{ p: 1, borderRadius: 3, bgcolor: 'transparent' }}>
+                                    <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                                        {mentor?.name || 'Mentor'} is typing...
+                                    </Typography>
+                                </Paper>
+                            </Box>
+                        )}
                         <div ref={messagesEndRef} />
                     </Box>
 
@@ -179,7 +214,7 @@ const ChatWithMentor = () => {
                             variant="outlined"
                             placeholder="Type your message..."
                             value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
+                            onChange={handleMessageChange}
                             sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'action.hover' } }}
                         />
                         <IconButton 
