@@ -11,7 +11,12 @@ import StudentDashboard from './pages/StudentDashboard';
 import AcademicRequests from './pages/AcademicRequests';
 import FacultyDashboard from './pages/FacultyDashboard';
 import FacultyRequests from './pages/FacultyRequests';
-import AdminRequests from './pages/AdminRequests'; import { ChatProvider } from './context/ChatContext';
+import AdminRequests from './pages/AdminRequests'; 
+import AnalyticsReports from './pages/AnalyticsReports';
+import RequestAnalytics from './pages/RequestAnalytics';
+import AttendanceAnalytics from './pages/AttendanceAnalytics';
+import AttendancePattern from './pages/AttendancePattern';
+import { ChatProvider } from './context/ChatContext';
 import ChatWithMentor from './pages/ChatWithMentor';
 import FacultyChat from './pages/FacultyChat';
 import FacultyAttendance from './pages/FacultyAttendance';
@@ -64,6 +69,26 @@ function App() {
           <Route path="/admin/requests" element={
             <ProtectedRoute allowedRoles={['Admin']}>
               <AdminRequests />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/analytics" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AnalyticsReports />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/analytics/requests" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <RequestAnalytics />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/analytics/attendance" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AttendanceAnalytics />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/analytics/pattern" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AttendancePattern />
             </ProtectedRoute>
           } />
 

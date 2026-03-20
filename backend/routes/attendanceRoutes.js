@@ -7,9 +7,13 @@ const {
     getStudentAttendanceSummary,
     getStudentSubjectAttendance,
     getSubjectSessions,
-    getSessionDetails
+    getSessionDetails,
+    getAdminAttendanceAnalytics
 } = require('../controllers/attendanceController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, authorizeRoles } = require('../middleware/authMiddleware');
+
+// Admin Routes
+router.get('/admin/analytics', protect, authorizeRoles('Admin'), getAdminAttendanceAnalytics);
 
 // Faculty Routes
 router.post('/session/create', protect, createSession);

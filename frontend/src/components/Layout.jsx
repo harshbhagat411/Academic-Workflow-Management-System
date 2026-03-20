@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import {
     Menu as MenuIcon, LayoutDashboard, Users, FileText, Upload,
-    LogOut, BookOpen, Clock, Layers, MessageCircle, ClipboardCheck, FileSpreadsheet, User
+    LogOut, BookOpen, Clock, Layers, MessageCircle, ClipboardCheck, FileSpreadsheet, User, BarChart3
 } from 'lucide-react';
 
 const drawerWidth = 260;
@@ -42,6 +42,7 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
                 { id: 'timetable', label: 'Timetable', icon: <Clock size={20} />, tabMode: true, path: '/admin/dashboard' },
                 { id: 'sections', label: 'Sections', icon: <Layers size={20} />, tabMode: true, path: '/admin/dashboard' },
                 { id: 'requests', label: 'Requests', icon: <FileText size={20} />, tabMode: false, path: '/admin/requests' },
+                { id: 'analytics', label: 'Analytics Reports', icon: <BarChart3 size={20} />, tabMode: false, path: '/admin/analytics' },
                 { id: 'create-user', label: 'Create User', icon: <User size={20} />, tabMode: false, path: '/admin/create-user' },
                 { id: 'bulk-upload', label: 'Bulk Upload', icon: <Upload size={20} />, tabMode: false, path: '/admin/bulk-upload' },
             ];

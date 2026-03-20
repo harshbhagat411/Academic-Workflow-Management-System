@@ -391,11 +391,20 @@ exports.updateAdminRequestStatus = async (req, res) => {
 
 exports.getRequestStats = async (req, res) => {
     try {
-        const total = await Request.countDocuments({});
-        const approved = await Request.countDocuments({ status: 'Approved' });
-        const rejected = await Request.countDocuments({ status: 'Rejected' });
+        const { range } = req.query;
+        let matchStage = {};
+        
+        if (range && range !== 'all') {
+            const dateRange = new Date();
+            dateRange.setDate(dateRange.getDate() - parseInt(range));
+            matchStage = { createdAt: { $gte: dateRange } };
+        }
+
+        const total = await Request.countDocuments(matchStage);
+        const approved = await Request.countDocuments({ ...matchStage, status: 'Approved' });
+        const rejected = await Request.countDocuments({ ...matchStage, status: 'Rejected' });
         // Pending: Status is NOT 'Approved' and NOT 'Rejected'
-        const pending = await Request.countDocuments({ status: { $nin: ['Approved', 'Rejected'] } });
+        const pending = await Request.countDocuments({ ...matchStage, status: { $nin: ['Approved', 'Rejected'] } });
 
         res.status(200).json({
             total,
