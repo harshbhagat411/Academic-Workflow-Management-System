@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import {
     Menu as MenuIcon, LayoutDashboard, Users, FileText, Upload,
-    LogOut, BookOpen, Clock, Layers, MessageCircle, ClipboardCheck, FileSpreadsheet, User, BarChart3
+    LogOut, BookOpen, Clock, Layers, MessageCircle, ClipboardCheck, FileSpreadsheet, User, BarChart3, Settings
 } from 'lucide-react';
 
 const drawerWidth = 260;
@@ -45,6 +45,7 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
                 { id: 'analytics', label: 'Analytics Reports', icon: <BarChart3 size={20} />, tabMode: false, path: '/admin/analytics' },
                 { id: 'create-user', label: 'Create User', icon: <User size={20} />, tabMode: false, path: '/admin/create-user' },
                 { id: 'bulk-upload', label: 'Bulk Upload', icon: <Upload size={20} />, tabMode: false, path: '/admin/bulk-upload' },
+                { id: 'settings', label: 'Settings', icon: <Settings size={20} />, tabMode: false, path: '/settings' },
             ];
         } else if (role === 'Faculty') {
             return [
@@ -56,6 +57,7 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
                 { id: 'requests', label: 'Academic Requests', icon: <FileText size={20} />, tabMode: false, path: '/faculty/requests' },
                 { id: 'chat', label: 'Messages', icon: <MessageCircle size={20} />, tabMode: false, path: '/faculty/chat' },
                 { id: 'profile', label: 'Profile', icon: <User size={20} />, tabMode: true, path: '/faculty/dashboard' },
+                { id: 'settings', label: 'Settings', icon: <Settings size={20} />, tabMode: false, path: '/settings' },
             ];
         } else if (role === 'Student') {
             return [
@@ -66,6 +68,7 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
                 { id: 'requests', label: 'Academic Requests', icon: <FileText size={20} />, tabMode: false, path: '/student/requests' },
                 { id: 'chat', label: 'Mentor Chat', icon: <MessageCircle size={20} />, tabMode: false, path: '/student/chat' },
                 { id: 'profile', label: 'Profile', icon: <User size={20} />, tabMode: true, path: '/student/dashboard' },
+                { id: 'settings', label: 'Settings', icon: <Settings size={20} />, tabMode: false, path: '/settings' },
             ];
         }
         return [];
@@ -153,10 +156,13 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
     );
 
     const getSidebarGradient = (userRole) => {
+        const isLight = theme.palette.mode === 'light';
+        const bottomColor = isLight ? 'rgba(255, 255, 255, 1)' : 'rgba(18, 18, 18, 1)';
+        
         switch(userRole) {
-            case 'Admin': return 'linear-gradient(180deg, rgba(49, 46, 129, 0.6) 0%, rgba(18, 18, 18, 1) 100%)';
-            case 'Faculty': return 'linear-gradient(180deg, rgba(30, 58, 138, 0.6) 0%, rgba(18, 18, 18, 1) 100%)';
-            case 'Student': return 'linear-gradient(180deg, rgba(19, 78, 74, 0.6) 0%, rgba(18, 18, 18, 1) 100%)';
+            case 'Admin': return `linear-gradient(180deg, ${isLight ? 'rgba(99, 102, 241, 0.15)' : 'rgba(49, 46, 129, 0.6)'} 0%, ${bottomColor} 100%)`;
+            case 'Faculty': return `linear-gradient(180deg, ${isLight ? 'rgba(59, 130, 246, 0.15)' : 'rgba(30, 58, 138, 0.6)'} 0%, ${bottomColor} 100%)`;
+            case 'Student': return `linear-gradient(180deg, ${isLight ? 'rgba(20, 184, 166, 0.15)' : 'rgba(19, 78, 74, 0.6)'} 0%, ${bottomColor} 100%)`;
             default: return 'none';
         }
     };

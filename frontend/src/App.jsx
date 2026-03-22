@@ -25,6 +25,7 @@ import FacultyAssessments from './pages/FacultyAssessments';
 import AssessmentMarksEntry from './pages/AssessmentMarksEntry';
 import StudentMarks from './pages/StudentMarks';
 import StudentTimetable from './pages/StudentTimetable';
+import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 
@@ -158,6 +159,12 @@ function App() {
           <Route path="/faculty/assessments/:id" element={
             <ProtectedRoute allowedRoles={['Faculty']}>
               <AssessmentMarksEntry />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/settings" element={
+            <ProtectedRoute allowedRoles={['Admin', 'Faculty', 'Student']}>
+              <Settings />
             </ProtectedRoute>
           } />
 
