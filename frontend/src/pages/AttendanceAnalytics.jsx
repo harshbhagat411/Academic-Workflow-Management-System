@@ -92,7 +92,7 @@ const AttendanceAnalytics = () => {
                                         contentStyle={{ backgroundColor: '#333', borderColor: '#444', color: 'white' }}
                                         cursor={{ fill: '#444' }}
                                     />
-                                    <Bar dataKey="attendancePercentage" fill="#1976d2" name="Attendance %" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="attendancePercentage" fill="#1976d2" name="Attendance %" radius={[4, 4, 0, 0]} isAnimationActive={false} />
                                 </BarChart>
                             </ResponsiveContainer>
                         ) : (

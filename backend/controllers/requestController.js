@@ -400,11 +400,12 @@ exports.getRequestStats = async (req, res) => {
             matchStage = { createdAt: { $gte: dateRange } };
         }
 
-        const total = await Request.countDocuments(matchStage);
-        const approved = await Request.countDocuments({ ...matchStage, status: 'Approved' });
-        const rejected = await Request.countDocuments({ ...matchStage, status: 'Rejected' });
-        // Pending: Status is NOT 'Approved' and NOT 'Rejected'
-        const pending = await Request.countDocuments({ ...matchStage, status: { $nin: ['Approved', 'Rejected'] } });
+        const [total, approved, rejected, pending] = await Promise.all([
+            Request.countDocuments(matchStage),
+            Request.countDocuments({ ...matchStage, status: 'Approved' }),
+            Request.countDocuments({ ...matchStage, status: 'Rejected' }),
+            Request.countDocuments({ ...matchStage, status: { $nin: ['Approved', 'Rejected'] } })
+        ]);
 
         res.status(200).json({
             total,

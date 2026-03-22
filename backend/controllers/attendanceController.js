@@ -223,75 +223,104 @@ exports.getAdminAttendanceAnalytics = async (req, res) => {
              sessionQuery.subjectId = { $in: subjectIds };
         }
 
-        const sessions = await AttendanceSession.find(sessionQuery).populate('subjectId', 'name code');
-        const sessionIds = sessions.map(s => s._id);
-        const records = await AttendanceRecord.find({ sessionId: { $in: sessionIds } });
+        // Optimized: MongoDB Aggregation Pipeline handles all grouping and counting
+        const attendanceStats = await AttendanceSession.aggregate([
+            { $match: sessionQuery },
+            {
+                $lookup: {
+                    from: 'attendancerecords', 
+                    localField: '_id',
+                    foreignField: 'sessionId',
+                    as: 'records'
+                }
+            },
+            { $unwind: '$records' },
+            {
+                $lookup: {
+                    from: 'subjects',
+                    localField: 'subjectId',
+                    foreignField: '_id',
+                    as: 'subjectDetails'
+                }
+            },
+            { $unwind: '$subjectDetails' },
+            {
+                $facet: {
+                    bySubject: [
+                        {
+                            $group: {
+                                _id: '$subjectDetails._id',
+                                name: { $first: '$subjectDetails.name' },
+                                totalRecords: { $sum: 1 },
+                                presentRecords: {
+                                    $sum: { $cond: [{ $eq: ['$records.status', 'Present'] }, 1, 0] }
+                                }
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                subject: '$name',
+                                attendancePercentage: {
+                                    $cond: [
+                                        { $gt: ['$totalRecords', 0] },
+                                        { $round: [{ $multiply: [{ $divide: ['$presentRecords', '$totalRecords'] }, 100] }, 2] },
+                                        0
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    byDay: [
+                        {
+                            $project: {
+                                dayOfWeek: { $dayOfWeek: '$date' },
+                                status: '$records.status'
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: '$dayOfWeek',
+                                totalRecords: { $sum: 1 },
+                                absentRecords: {
+                                    $sum: { $cond: [{ $eq: ['$status', 'Absent'] }, 1, 0] }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]);
 
-        const subjectStats = {};
-        const sessionMap = {};
+        const results = attendanceStats[0] || {};
+        const attendanceOverview = results.bySubject || [];
         
-        sessions.forEach(s => {
-            sessionMap[s._id.toString()] = {
-                subject: s.subjectId ? s.subjectId.name : 'Unknown',
-                date: new Date(s.date)
-            };
-            
-            if (s.subjectId && !subjectStats[s.subjectId._id]) {
-                subjectStats[s.subjectId._id] = {
-                    name: s.subjectId.name,
-                    totalRecords: 0,
-                    presentRecords: 0
+        const dayMap = {
+            1: 'Sunday', 2: 'Monday', 3: 'Tuesday', 4: 'Wednesday', 5: 'Thursday', 6: 'Friday', 7: 'Saturday'
+        };
+        const defaultDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        
+        // Convert aggregated day stats into a map for fast lookup
+        const dayStatsMap = {};
+        (results.byDay || []).forEach(d => {
+            const dayName = dayMap[d._id];
+            if (dayName) {
+                dayStatsMap[dayName] = {
+                    total: d.totalRecords,
+                    absent: d.absentRecords
                 };
             }
         });
 
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const dayStats = {
-            Monday: { total: 0, absent: 0 },
-            Tuesday: { total: 0, absent: 0 },
-            Wednesday: { total: 0, absent: 0 },
-            Thursday: { total: 0, absent: 0 },
-            Friday: { total: 0, absent: 0 },
-            Saturday: { total: 0, absent: 0 },
-            Sunday: { total: 0, absent: 0 }
-        };
-
-        records.forEach(r => {
-            const sessionInfo = sessionMap[r.sessionId.toString()];
-            if (sessionInfo) {
-                const sessionObj = sessions.find(s => s._id.toString() === r.sessionId.toString());
-                const subId = sessionObj && sessionObj.subjectId ? sessionObj.subjectId._id : null;
-                
-                if (subId && subjectStats[subId]) {
-                    subjectStats[subId].totalRecords++;
-                    if (r.status === 'Present') {
-                        subjectStats[subId].presentRecords++;
-                    }
-                }
-
-                const dayName = days[sessionInfo.date.getDay()];
-                if (dayStats[dayName]) {
-                    dayStats[dayName].total++;
-                    if (r.status === 'Absent') {
-                        dayStats[dayName].absent++; 
-                    }
-                }
-            }
+        const attendancePattern = defaultDays.map(day => {
+            const stat = dayStatsMap[day] || { total: 0, absent: 0 };
+            return {
+                day,
+                absencePercentage: stat.total > 0 
+                    ? parseFloat(((stat.absent / stat.total) * 100).toFixed(2)) 
+                    : 0
+            };
         });
-
-        const attendanceOverview = Object.values(subjectStats).map(stat => ({
-            subject: stat.name,
-            attendancePercentage: stat.totalRecords > 0 
-                ? parseFloat(((stat.presentRecords / stat.totalRecords) * 100).toFixed(2)) 
-                : 0
-        }));
-
-        const attendancePattern = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => ({
-            day,
-            absencePercentage: dayStats[day].total > 0 
-                ? parseFloat(((dayStats[day].absent / dayStats[day].total) * 100).toFixed(2)) 
-                : 0
-        }));
 
         res.json({
             attendanceOverview,

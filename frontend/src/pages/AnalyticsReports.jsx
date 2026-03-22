@@ -35,23 +35,26 @@ const AnalyticsReports = () => {
         fetchAllStats();
     }, []);
 
-    // Derived Metrics Calculations
-    let avgAttendance = 0;
-    let highestAbsence = null;
+    // Derived Metrics Calculations wrapped in useMemo
+    const { avgAttendance, highestAbsence } = React.useMemo(() => {
+        let avg = 0;
+        let highest = null;
 
-    if (attendanceStats) {
-        const overviews = attendanceStats.attendanceOverview || [];
-        if (overviews.length > 0) {
-            const sum = overviews.reduce((acc, curr) => acc + curr.attendancePercentage, 0);
-            avgAttendance = (sum / overviews.length).toFixed(1);
-        }
+        if (attendanceStats) {
+            const overviews = attendanceStats.attendanceOverview || [];
+            if (overviews.length > 0) {
+                const sum = overviews.reduce((acc, curr) => acc + curr.attendancePercentage, 0);
+                avg = (sum / overviews.length).toFixed(1);
+            }
 
-        const patterns = attendanceStats.attendancePattern || [];
-        if (patterns.length > 0) {
-            const sorted = [...patterns].sort((a, b) => b.absencePercentage - a.absencePercentage);
-            highestAbsence = sorted[0];
+            const patterns = attendanceStats.attendancePattern || [];
+            if (patterns.length > 0) {
+                const sorted = [...patterns].sort((a, b) => b.absencePercentage - a.absencePercentage);
+                highest = sorted[0];
+            }
         }
-    }
+        return { avgAttendance: avg, highestAbsence: highest };
+    }, [attendanceStats]);
 
     if (loading) {
         return (
