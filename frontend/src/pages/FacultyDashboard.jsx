@@ -1,5 +1,5 @@
 import { useNavigate, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import {
   LayoutDashboard,
@@ -15,6 +15,7 @@ import {
   Eye,
   EyeIcon,
   ScanEye,
+  Search,
 } from "lucide-react";
 import {
   Box,
@@ -31,6 +32,12 @@ import {
   TableRow,
   Paper,
   Chip,
+  TextField,
+  InputAdornment,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel,
 } from "@mui/material";
 
 import SecuritySection from "../components/SecuritySection";
@@ -73,6 +80,43 @@ const FacultyDashboard = () => {
 
   const [students, setStudents] = useState([]);
   const [mentoredStudents, setMentoredStudents] = useState([]);
+
+  const [studentSearchTerm, setStudentSearchTerm] = useState("");
+  const [studentSemesterFilter, setStudentSemesterFilter] = useState("");
+
+  const [menteeSearchTerm, setMenteeSearchTerm] = useState("");
+  const [menteeSemesterFilter, setMenteeSemesterFilter] = useState("");
+
+  const filteredStudents = useMemo(() => {
+    return students.filter((student) => {
+      const matchesSearch =
+        studentSearchTerm === "" ||
+        (student.name?.toLowerCase() || "").includes(studentSearchTerm.toLowerCase()) ||
+        (student.loginId?.toLowerCase() || "").includes(studentSearchTerm.toLowerCase());
+
+      const matchesSemester =
+        studentSemesterFilter === "" ||
+        String(student.semester) === String(studentSemesterFilter);
+
+      return matchesSearch && matchesSemester;
+    });
+  }, [students, studentSearchTerm, studentSemesterFilter]);
+
+  const filteredMentees = useMemo(() => {
+    return mentoredStudents.filter((alloc) => {
+      const student = alloc.studentId || {};
+      const matchesSearch =
+        menteeSearchTerm === "" ||
+        (student.name?.toLowerCase() || "").includes(menteeSearchTerm.toLowerCase()) ||
+        (student.loginId?.toLowerCase() || "").includes(menteeSearchTerm.toLowerCase());
+
+      const matchesSemester =
+        menteeSemesterFilter === "" ||
+        String(alloc.semester) === String(menteeSemesterFilter);
+
+      return matchesSearch && matchesSemester;
+    });
+  }, [mentoredStudents, menteeSearchTerm, menteeSemesterFilter]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -271,23 +315,57 @@ const FacultyDashboard = () => {
 
         {activeTab === "students" && (
           <Card sx={{ borderRadius: 2, boxShadow: 2, overflow: "hidden" }}>
-            <Box sx={{ p: 3, borderBottom: 1, borderColor: "divider" }}>
-              <Typography
-                variant="h6"
-                fontWeight="bold"
-                display="flex"
-                alignItems="center"
-                gap={1}
-              >
-                <Box sx={{ display: "flex", color: "primary.main" }}>
-                  <Users size={20} />
-                </Box>
-                Students (Departmental)
-              </Typography>
-              <Typography variant="body2" color="text.secondary" mt={0.5}>
-                Showing students from your department who have submitted
-                requests.
-              </Typography>
+            <Box sx={{ p: 3, borderBottom: 1, borderColor: "divider", display: "flex", flexDirection: { xs: "column", md: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" }, gap: 2 }}>
+              <Box>
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  display="flex"
+                  alignItems="center"
+                  gap={1}
+                >
+                  <Box sx={{ display: "flex", color: "primary.main" }}>
+                    <Users size={20} />
+                  </Box>
+                  Students (Departmental)
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mt={0.5}>
+                  Showing students from your department who have submitted
+                  requests.
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, alignItems: "center" }}>
+                <TextField
+                  placeholder="Search name or ID..."
+                  value={studentSearchTerm}
+                  onChange={(e) => setStudentSearchTerm(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search size={18} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ width: { xs: "100%", sm: 220 } }}
+                />
+
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                  <InputLabel>Semester</InputLabel>
+                  <Select
+                    value={studentSemesterFilter}
+                    label="Semester"
+                    onChange={(e) => setStudentSemesterFilter(e.target.value)}
+                  >
+                    <MenuItem value=""><em>All Semesters</em></MenuItem>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => (
+                      <MenuItem key={s} value={s}>Semester {s}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
             </Box>
             <TableContainer
               component={Paper}
@@ -308,8 +386,8 @@ const FacultyDashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {students.length > 0 ? (
-                    students.map((student, index) => (
+                  {filteredStudents.length > 0 ? (
+                    filteredStudents.map((student, index) => (
                       <TableRow key={student._id} hover>
                         <TableCell sx={{ fontFamily: "monospace" }}>
                           {index + 1}
@@ -386,15 +464,48 @@ const FacultyDashboard = () => {
                   List of students assigned to you.
                 </Typography>
               </Box>
-              <Button
-                component={Link}
-                to="/faculty/chat"
-                variant="contained"
-                color="secondary"
-                sx={{ fontWeight: "medium", borderRadius: 2 }}
-              >
-                💬 Message Mentees
-              </Button>
+
+              <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, alignItems: "center" }}>
+                <TextField
+                  placeholder="Search name or ID..."
+                  value={menteeSearchTerm}
+                  onChange={(e) => setMenteeSearchTerm(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search size={18} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ width: { xs: "100%", sm: 220 } }}
+                />
+
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                  <InputLabel>Semester</InputLabel>
+                  <Select
+                    value={menteeSemesterFilter}
+                    label="Semester"
+                    onChange={(e) => setMenteeSemesterFilter(e.target.value)}
+                  >
+                    <MenuItem value=""><em>All Semesters</em></MenuItem>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => (
+                      <MenuItem key={s} value={s}>Semester {s}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <Button
+                  component={Link}
+                  to="/faculty/chat"
+                  variant="contained"
+                  color="secondary"
+                  sx={{ fontWeight: "medium", borderRadius: 2, ml: { sm: 2 } }}
+                >
+                  💬 Message Mentees
+                </Button>
+              </Box>
             </Box>
             <TableContainer
               component={Paper}
@@ -413,7 +524,7 @@ const FacultyDashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {mentoredStudents.map((alloc) => (
+                  {filteredMentees.map((alloc) => (
                     <TableRow key={alloc._id} hover>
                       <TableCell sx={{ fontWeight: "medium" }}>
                         {alloc.studentId?.name}
@@ -435,7 +546,7 @@ const FacultyDashboard = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {mentoredStudents.length === 0 && (
+                  {filteredMentees.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
                         <Typography color="text.secondary">

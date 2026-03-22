@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
     Box, Typography, Card, CardContent, Tabs, Tab, FormControlLabel, Checkbox,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    TextField, Button as MuiButton, Chip, Alert, Dialog
+    TextField, Button as MuiButton, Chip, Alert, Dialog, InputAdornment, FormControl, Select, MenuItem, InputLabel
 } from '@mui/material';
+import { Search } from 'lucide-react';
 import RequestTimeline from '../components/RequestTimeline';
 import Layout from '../components/Layout';
 
@@ -15,6 +16,8 @@ const AdminRequests = () => {
     const [selectedRequestId, setSelectedRequestId] = useState(null);
     const [activeTab, setActiveTab] = useState('pending');
     const [showDelayedOnly, setShowDelayedOnly] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
 
     const fetchRequests = async () => {
         try {
@@ -65,9 +68,19 @@ const AdminRequests = () => {
         });
     };
 
-    const filteredRequests = showDelayedOnly
-        ? requests.filter(r => r.isFacultyDelayed || r.isAdminDelayed)
-        : requests;
+    const filteredRequests = React.useMemo(() => {
+        return requests.filter(r => {
+            const matchesDelay = showDelayedOnly ? (r.isFacultyDelayed || r.isAdminDelayed) : true;
+            
+            const matchesSearch = searchTerm === '' || 
+                (r.studentId?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (r.requestType?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+                
+            const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
+            
+            return matchesDelay && matchesSearch && matchesStatus;
+        });
+    }, [requests, showDelayedOnly, searchTerm, statusFilter]);
 
     return (
         <Layout role="Admin">
@@ -82,7 +95,7 @@ const AdminRequests = () => {
                 </Alert>
             )}
 
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-end' }, mb: 3, gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', lg: 'flex-end' }, mb: 3, gap: 2 }}>
                 <Tabs 
                     value={activeTab} 
                     onChange={(e, newValue) => setActiveTab(newValue)} 
@@ -94,18 +107,51 @@ const AdminRequests = () => {
                     <Tab label="All Request History" value="history" sx={{ fontWeight: 'bold' }} />
                 </Tabs>
 
-                <Card variant="outlined" sx={{ px: 2, py: 0.5, borderRadius: 2 }}>
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={showDelayedOnly}
-                                onChange={(e) => setShowDelayedOnly(e.target.checked)}
-                                color="primary"
-                            />
-                        }
-                        label={<Typography variant="body2" fontWeight="medium">Show Delayed Only</Typography>}
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: 'center' }}>
+                    <TextField
+                        placeholder="Search student or type..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        variant="outlined"
+                        size="small"
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <Search size={18} />
+                                </InputAdornment>
+                            ),
+                        }}
+                        sx={{ width: { xs: '100%', sm: 220 } }}
                     />
-                </Card>
+
+                    <FormControl size="small" sx={{ minWidth: 150 }}>
+                        <InputLabel>Status</InputLabel>
+                        <Select
+                            value={statusFilter}
+                            label="Status"
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <MenuItem value="All"><em>All</em></MenuItem>
+                            <MenuItem value="Submitted">Submitted</MenuItem>
+                            <MenuItem value="Approved">Approved</MenuItem>
+                            <MenuItem value="Rejected">Rejected</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <Card variant="outlined" sx={{ px: 2, py: 0.5, borderRadius: 2 }}>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={showDelayedOnly}
+                                    onChange={(e) => setShowDelayedOnly(e.target.checked)}
+                                    color="primary"
+                                />
+                            }
+                            label={<Typography variant="body2" fontWeight="medium">Show Delayed Only</Typography>}
+                            sx={{ m: 0 }}
+                        />
+                    </Card>
+                </Box>
             </Box>
 
             <Card sx={{ borderRadius: 2, boxShadow: 3 }}>

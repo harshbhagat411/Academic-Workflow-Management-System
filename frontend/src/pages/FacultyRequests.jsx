@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
     Box, Typography, Tabs, Tab, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
-    Button, TextField, Chip, Alert, Dialog, Paper, IconButton, CircularProgress
+    Button, TextField, Chip, Alert, Dialog, Paper, IconButton, CircularProgress, InputAdornment, FormControl, Select, MenuItem, InputLabel
 } from '@mui/material';
-import { FileText, CheckCircle, XCircle, X as Close, History, Clock } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, X as Close, History, Clock, Search } from 'lucide-react';
 import Layout from '../components/Layout';
 import RequestTimeline from '../components/RequestTimeline';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -17,6 +17,8 @@ const FacultyRequests = () => {
     const [activeTab, setActiveTab] = useState('pending');
     const [loading, setLoading] = useState(true);
     const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', description: '', type: 'default', action: null });
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
 
     const closeConfirmDialog = () => setConfirmDialog(prev => ({ ...prev, open: false }));
 
@@ -48,6 +50,28 @@ const FacultyRequests = () => {
     const handleRemarkChange = (reqId, value) => {
         setRemarksInput(prev => ({ ...prev, [reqId]: value }));
     };
+
+    const filteredRequests = React.useMemo(() => {
+        return requests.filter(item => {
+            const isHistory = activeTab === 'history';
+            const request = isHistory ? item.requestDetails : item;
+            
+            if (!request) return false; // Prevents crash when switching tabs before data loads
+
+            const displayStatus = isHistory ? item.action : item.status;
+            
+            const matchesSearch = searchTerm === '' || 
+                (request?.studentId?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (request?.requestType?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+                
+            const matchesStatus = statusFilter === 'All' || 
+                displayStatus === statusFilter || 
+                (statusFilter === 'Approved' && displayStatus === 'Faculty Approved') || 
+                (statusFilter === 'Rejected' && displayStatus === 'Faculty Rejected');
+            
+            return matchesSearch && matchesStatus;
+        });
+    }, [requests, activeTab, searchTerm, statusFilter]);
 
     const executeAction = async (requestId, status) => {
         const remarks = remarksInput[requestId];
@@ -139,6 +163,38 @@ const FacultyRequests = () => {
                         </Tabs>
                     </Box>
 
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, p: 2, alignItems: 'center', justifyContent: 'flex-end', borderBottom: 1, borderColor: 'divider' }}>
+                            <TextField
+                                placeholder="Search student or type..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                variant="outlined"
+                                size="small"
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Search size={18} />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                                sx={{ width: { xs: '100%', sm: 220 } }}
+                            />
+
+                            <FormControl size="small" sx={{ minWidth: 150 }}>
+                                <InputLabel>Status</InputLabel>
+                                <Select
+                                    value={statusFilter}
+                                    label="Status"
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                >
+                                    <MenuItem value="All"><em>All</em></MenuItem>
+                                    <MenuItem value="Submitted">Submitted</MenuItem>
+                                    <MenuItem value="Approved">Approved</MenuItem>
+                                    <MenuItem value="Rejected">Rejected</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Box>
+
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
                             <CircularProgress />
@@ -156,14 +212,14 @@ const FacultyRequests = () => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {requests.length === 0 ? (
+                                    {filteredRequests.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                                                 <Typography color="text.secondary">No requests found.</Typography>
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        requests.map((item) => {
+                                        filteredRequests.map((item) => {
                                             const isHistory = activeTab === 'history';
                                             const request = isHistory ? item.requestDetails : item;
                                             const displayStatus = isHistory ? item.action : item.status;

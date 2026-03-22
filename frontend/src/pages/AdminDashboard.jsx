@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Box, Typography, Grid, Button as MuiButton, Card, CardContent, 
@@ -16,19 +16,21 @@ import { Calendar, Users as UsersIcon, BookOpen, AlertCircle } from 'lucide-reac
 
 // Helper Component defined outside to prevent re-renders losing focus
 const UserTable = ({ data, type, searchTerm, setSearchTerm, semesterFilter, setSemesterFilter, toggleUserStatus }) => {
-    const filteredData = data.filter(user => {
-        const matchesSemester = type === 'Student' && semesterFilter
-            ? String(user.semester) === String(semesterFilter)
-            : true;
+    const filteredData = React.useMemo(() => {
+        return data.filter(user => {
+            const matchesSemester = type === 'Student' && semesterFilter
+                ? String(user.semester) === String(semesterFilter)
+                : true;
 
-        const matchesSearch = searchTerm === '' ||
-            (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (user.loginId?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (user.department?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (user.specialization?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+            const matchesSearch = searchTerm === '' ||
+                (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (user.loginId?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (user.department?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                (user.specialization?.toLowerCase() || '').includes(searchTerm.toLowerCase());
 
-        return matchesSemester && matchesSearch;
-    });
+            return matchesSemester && matchesSearch;
+        });
+    }, [data, type, searchTerm, semesterFilter]);
 
     return (
         <Card sx={{ mt: 2, mb: 4, borderRadius: 2, boxShadow: 3, bgcolor: 'background.paper' }}>
