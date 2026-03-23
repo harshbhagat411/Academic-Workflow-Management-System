@@ -26,6 +26,7 @@ import AssessmentMarksEntry from './pages/AssessmentMarksEntry';
 import StudentMarks from './pages/StudentMarks';
 import StudentTimetable from './pages/StudentTimetable';
 import Settings from './pages/Settings';
+import Assignments from './pages/Assignments';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 
@@ -104,6 +105,11 @@ function App() {
               <AcademicRequests />
             </ProtectedRoute>
           } />
+          <Route path="/student/assignments" element={
+            <ProtectedRoute allowedRoles={['Student']}>
+              <Assignments />
+            </ProtectedRoute>
+          } />
           <Route path="/student/timetable" element={
             <ProtectedRoute allowedRoles={['Student']}>
               <StudentTimetable />
@@ -119,6 +125,11 @@ function App() {
           <Route path="/faculty/requests" element={
             <ProtectedRoute allowedRoles={['Faculty']}>
               <FacultyRequests />
+            </ProtectedRoute>
+          } />
+          <Route path="/faculty/assignments" element={
+            <ProtectedRoute allowedRoles={['Faculty']}>
+              <Assignments />
             </ProtectedRoute>
           } />
 
