@@ -35,6 +35,7 @@ app.use('/api/sections', require('./routes/sectionRoutes'));
 app.use('/api/assessments', require('./routes/assessmentRoutes'));
 app.use('/api/academic-bot', require('./routes/academicBotRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/settings', require('./routes/settingsRoutes'));
 
 
 const PORT = process.env.PORT || 5000;

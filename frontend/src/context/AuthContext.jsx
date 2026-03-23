@@ -20,6 +20,10 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
+        localStorage.removeItem('themeMode');
+        localStorage.removeItem('colorMode');
+        localStorage.removeItem('emailNotifications');
+        localStorage.removeItem('marksNotifications');
         setUser(null);
         window.location.replace('/login'); // Force reload and replace history to clear theme
     };

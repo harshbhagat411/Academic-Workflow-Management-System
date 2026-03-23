@@ -11,7 +11,7 @@ import { ThemeContext } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
 const Settings = () => {
-    const { themeMode, toggleThemeMode, colorMode, toggleColorMode } = useContext(ThemeContext);
+    const { themeMode, toggleThemeMode, colorMode, toggleColorMode, settings, updateNotifications } = useContext(ThemeContext);
     const role = localStorage.getItem('role');
     
     // State
@@ -23,15 +23,6 @@ const Settings = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [pwdMessage, setPwdMessage] = useState({ type: '', text: '' });
-    
-    // Notifications state
-    const [notifyRequestUpdates, setNotifyRequestUpdates] = useState(
-        localStorage.getItem('notifyRequestUpdates') !== 'false'
-    );
-    const [notifyMarksUpdates, setNotifyMarksUpdates] = useState(
-        localStorage.getItem('notifyMarksUpdates') !== 'false'
-    );
-    
     // Admin state
     const [adminSettings, setAdminSettings] = useState({
         maxRequestDelay: localStorage.getItem('maxRequestDelay') || '3',
@@ -83,16 +74,6 @@ const Settings = () => {
             setPasswords({ newPassword: '', confirmPassword: '' });
         } catch (err) {
             setPwdMessage({ type: 'error', text: err.response?.data?.message || 'Failed to update password.' });
-        }
-    };
-    
-    const handleNotificationChange = (field, value) => {
-        if (field === 'requests') {
-            setNotifyRequestUpdates(value);
-            localStorage.setItem('notifyRequestUpdates', value);
-        } else {
-            setNotifyMarksUpdates(value);
-            localStorage.setItem('notifyMarksUpdates', value);
         }
     };
     
@@ -243,12 +224,12 @@ const Settings = () => {
                                         <Divider sx={{ mb: 2 }} />
                                         
                                         <FormControlLabel
-                                            control={<Switch checked={notifyRequestUpdates} onChange={(e) => handleNotificationChange('requests', e.target.checked)} color="primary" />}
+                                            control={<Switch checked={settings?.emailNotifications ?? true} onChange={(e) => updateNotifications('emailNotifications', e.target.checked)} color="primary" />}
                                             label="Email on Request Updates"
                                             sx={{ display: 'flex', width: '100%', mb: 1 }}
                                         />
                                         <FormControlLabel
-                                            control={<Switch checked={notifyMarksUpdates} onChange={(e) => handleNotificationChange('marks', e.target.checked)} color="primary" />}
+                                            control={<Switch checked={settings?.marksNotifications ?? true} onChange={(e) => updateNotifications('marksNotifications', e.target.checked)} color="primary" />}
                                             label="Email on Marks Updates"
                                             sx={{ display: 'flex', width: '100%' }}
                                         />

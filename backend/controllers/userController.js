@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { sendCredentialEmail } = require('../utils/emailService');
+const Settings = require('../models/Settings');
 
 exports.createUser = async (req, res) => {
     try {
@@ -44,6 +45,7 @@ exports.createUser = async (req, res) => {
         });
 
         await newUser.save();
+        await Settings.create({ userId: newUser._id });
         await sendCredentialEmail(email, loginId, generatedPassword);
         res.status(201).json({ message: 'User created successfully', user: { loginId } });
     } catch (error) {
