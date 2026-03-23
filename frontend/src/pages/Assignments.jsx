@@ -263,14 +263,16 @@ const Assignments = () => {
                                                                     <strong>Remarks:</strong> {assign.submission.remarks}
                                                                 </Typography>
                                                             )}
-                                                            <Button 
-                                                                size="small" 
-                                                                variant="outlined" 
-                                                                sx={{ mt: 2, width: '100%' }}
-                                                                onClick={() => { setUploadAssignment(assign); setOpenUpload(true); }}
-                                                            >
-                                                                {assign.submission.status === 'Rejected' ? 'Re-upload Assignment' : 'Update Submission'}
-                                                            </Button>
+                                                            {assign.submission.status !== 'Accepted' && (
+                                                                <Button 
+                                                                    size="small" 
+                                                                    variant="outlined" 
+                                                                    sx={{ mt: 2, width: '100%' }}
+                                                                    onClick={() => { setUploadAssignment(assign); setOpenUpload(true); }}
+                                                                >
+                                                                    {assign.submission.status === 'Rejected' ? 'Re-upload Assignment' : 'Update Submission'}
+                                                                </Button>
+                                                            )}
                                                         </>
                                                     ) : (
                                                         <Button 
