@@ -158,8 +158,8 @@ const AdminDashboard = () => {
     const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
     const [users, setUsers] = useState([]);
     const [semesterFilter, setSemesterFilter] = useState('');
-    const [mentorAllocations, setMentorAllocations] = useState([]);
-    const [mentorForm, setMentorForm] = useState({
+    const [counselorAllocations, setCounselorAllocations] = useState([]);
+    const [counselorForm, setCounselorForm] = useState({
         semester: '',
         studentIds: [],
         facultyId: ''
@@ -378,8 +378,8 @@ const AdminDashboard = () => {
         } else if (activeTab === 'students') {
             fetchStudentList();
         } else if (activeTab === 'mentors') {
-            fetchMentorAllocations();
-            fetchMentorFormData();
+            fetchCounselorAllocations();
+            fetchCounselorFormData();
         } else if (activeTab === 'subjects') {
             fetchSubjects();
             fetchStaffList(); // To populate faculty dropdown
@@ -571,19 +571,19 @@ const AdminDashboard = () => {
         });
     };
 
-    const fetchMentorAllocations = async () => {
+    const fetchCounselorAllocations = async () => {
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get('http://localhost:5000/api/mentors/admin', {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setMentorAllocations(res.data);
+            setCounselorAllocations(res.data);
         } catch (err) {
             console.error('Error fetching allocations:', err);
         }
     };
 
-    const fetchMentorFormData = async () => {
+    const fetchCounselorFormData = async () => {
         try {
             const token = localStorage.getItem('token');
             const [studentRes, facultyRes] = await Promise.all([
@@ -599,7 +599,7 @@ const AdminDashboard = () => {
 
     const handleSemesterChange = (e) => {
         const sem = e.target.value;
-        setMentorForm({ ...mentorForm, semester: sem, studentIds: [] });
+        setCounselorForm({ ...counselorForm, semester: sem, studentIds: [] });
         if (sem) {
             const filtered = users.filter(u => String(u.semester) === String(sem));
             setFilteredStudents(filtered);
@@ -609,7 +609,7 @@ const AdminDashboard = () => {
     };
 
     const toggleStudentSelection = (id) => {
-        setMentorForm(prev => {
+        setCounselorForm(prev => {
             const ids = prev.studentIds.includes(id)
                 ? prev.studentIds.filter(sid => sid !== id)
                 : [...prev.studentIds, id];
@@ -618,24 +618,24 @@ const AdminDashboard = () => {
     };
     const handleSelectAll = (e) => {
         if (e.target.checked) {
-            setMentorForm({ ...mentorForm, studentIds: filteredStudents.map(s => s._id) });
+            setCounselorForm({ ...counselorForm, studentIds: filteredStudents.map(s => s._id) });
         } else {
-            setMentorForm({ ...mentorForm, studentIds: [] });
+            setCounselorForm({ ...counselorForm, studentIds: [] });
         }
     };
 
-    const handleAssignMentor = async () => {
+    const handleAssignCounselor = async () => {
         try {
             const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/mentors/assign', mentorForm, {
+            await axios.post('http://localhost:5000/api/mentors/assign', counselorForm, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Mentor assigned successfully');
-            fetchMentorAllocations();
-            setMentorForm({ semester: '', studentIds: [], facultyId: '' });
+            alert('Counselor assigned successfully');
+            fetchCounselorAllocations();
+            setCounselorForm({ semester: '', studentIds: [], facultyId: '' });
         } catch (err) {
             console.error(err);
-            alert(err.response?.data?.message || 'Failed to assign mentor');
+            alert(err.response?.data?.message || 'Failed to assign counselor');
         }
     };
 
@@ -840,7 +840,7 @@ const AdminDashboard = () => {
                         <Card sx={{ p: 3, borderRadius: 2, boxShadow: 3, bgcolor: 'background.paper' }}>
                             <Typography variant="h6" fontWeight="bold" mb={3} display="flex" alignItems="center" gap={1}>
                                 <Users size={20} color="#2196f3" />
-                                Assign Mentor
+                                Assign Counselor
                             </Typography>
 
                             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 2fr 1fr' }, gap: 3, width: '100%' }}>
@@ -849,7 +849,7 @@ const AdminDashboard = () => {
                                     <FormControl fullWidth>
                                         <InputLabel>Semester</InputLabel>
                                         <MuiSelect
-                                            value={mentorForm.semester}
+                                            value={counselorForm.semester}
                                             label="Semester"
                                             onChange={handleSemesterChange}
                                         >
@@ -868,8 +868,8 @@ const AdminDashboard = () => {
                                                 <input
                                                     type="checkbox"
                                                     onChange={handleSelectAll}
-                                                    checked={filteredStudents.length > 0 && mentorForm.studentIds.length === filteredStudents.length}
-                                                    disabled={!mentorForm.semester}
+                                                    checked={filteredStudents.length > 0 && counselorForm.studentIds.length === filteredStudents.length}
+                                                    disabled={!counselorForm.semester}
                                                     style={{ width: 16, height: 16 }}
                                                 />
                                                 <Typography variant="body2" fontWeight="medium">Select All Eligible Students</Typography>
@@ -880,7 +880,7 @@ const AdminDashboard = () => {
                                                 <label key={s._id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
                                                     <input
                                                         type="checkbox"
-                                                        checked={mentorForm.studentIds.includes(s._id)}
+                                                        checked={counselorForm.studentIds.includes(s._id)}
                                                         onChange={() => toggleStudentSelection(s._id)}
                                                         style={{ width: 16, height: 16 }}
                                                     />
@@ -889,24 +889,24 @@ const AdminDashboard = () => {
                                             ))}
                                             {filteredStudents.length === 0 && (
                                                 <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 3 }}>
-                                                    {mentorForm.semester ? "No students found in this semester" : "Select a semester first"}
+                                                    {counselorForm.semester ? "No students found in this semester" : "Select a semester first"}
                                                 </Typography>
                                             )}
                                         </Box>
                                     </Paper>
                                     <Typography variant="caption" color="text.secondary" display="block" align="right" mt={0.5}>
-                                        {mentorForm.studentIds.length} students selected
+                                        {counselorForm.studentIds.length} students selected
                                     </Typography>
                                 </Box>
 
                                 {/* Faculty Select & Button */}
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                     <FormControl fullWidth>
-                                        <InputLabel>Faculty Mentor</InputLabel>
+                                        <InputLabel>Faculty Counselor</InputLabel>
                                         <MuiSelect
-                                            value={mentorForm.facultyId}
-                                            label="Faculty Mentor"
-                                            onChange={(e) => setMentorForm({ ...mentorForm, facultyId: e.target.value })}
+                                            value={counselorForm.facultyId}
+                                            label="Faculty Counselor"
+                                            onChange={(e) => setCounselorForm({ ...counselorForm, facultyId: e.target.value })}
                                         >
                                             <MenuItem value=""><em>Select Faculty</em></MenuItem>
                                             {faculties.map(f => (
@@ -919,11 +919,11 @@ const AdminDashboard = () => {
                                         variant="contained"
                                         color="primary"
                                         fullWidth
-                                        onClick={handleAssignMentor}
-                                        disabled={mentorForm.studentIds.length === 0 || !mentorForm.facultyId}
+                                        onClick={handleAssignCounselor}
+                                        disabled={counselorForm.studentIds.length === 0 || !counselorForm.facultyId}
                                         sx={{ mt: 'auto', py: 1.5 }}
                                     >
-                                        Assign Mentor
+                                        Assign Counselor
                                     </MuiButton>
                                 </Box>
                             </Box>
@@ -941,20 +941,20 @@ const AdminDashboard = () => {
                                             <TableCell sx={{ fontWeight: 'bold' }}>Student Name</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold' }}>Login ID</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold' }}>Semester</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold' }}>Assigned Mentor</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>Assigned Counselor</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold' }}>Assigned Date</TableCell>
                                             <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {mentorAllocations.length === 0 ? (
+                                        {counselorAllocations.length === 0 ? (
                                             <TableRow>
                                                 <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                                                    No allocations found. Start by assigning a mentor above.
+                                                    No allocations found. Start by assigning a counselor above.
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            mentorAllocations.map(alloc => (
+                                            counselorAllocations.map(alloc => (
                                                 <TableRow key={alloc._id} hover>
                                                     <TableCell sx={{ fontWeight: 500 }}>{alloc.studentId?.name}</TableCell>
                                                     <TableCell sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>{alloc.studentId?.loginId}</TableCell>

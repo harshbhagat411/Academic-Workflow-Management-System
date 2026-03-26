@@ -230,7 +230,7 @@ const FacultyChat = () => {
                     <Box sx={{ width: { xs: 80, sm: 300 }, borderRight: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column' }}>
                         <AppBar position="static" color="primary" elevation={0} sx={{ py: 1.5, px: 2, borderTopLeftRadius: 12 }}>
                             <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center" gap={1}>
-                                <MessageSquare size={20} /> <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>My Mentees</Box>
+                                <MessageSquare size={20} /> <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>My Counselees</Box>
                             </Typography>
                         </AppBar>
 
@@ -286,7 +286,7 @@ const FacultyChat = () => {
                             ))}
                             {students.length === 0 && (
                                 <Box sx={{ p: 4, textAlign: 'center' }}>
-                                    <Typography color="text.secondary" fontStyle="italic" variant="body2">No mentees assigned yet.</Typography>
+                                    <Typography color="text.secondary" fontStyle="italic" variant="body2">No counselees assigned yet.</Typography>
                                 </Box>
                             )}
                         </List>
@@ -315,7 +315,7 @@ const FacultyChat = () => {
                                         </Box>
                                     </Box>
                                     <Box sx={{ bgcolor: 'primary.50', color: 'primary.700', px: 2, py: 0.5, borderRadius: 4, border: 1, borderColor: 'primary.100', display: { xs: 'none', sm: 'block' } }}>
-                                        <Typography variant="caption" fontWeight="bold">Mentorship Chat</Typography>
+                                        <Typography variant="caption" fontWeight="bold">Counseling Chat</Typography>
                                     </Box>
                                 </Toolbar>
 
@@ -417,7 +417,7 @@ const FacultyChat = () => {
                                         <MessageSquare size={40} />
                                     </Avatar>
                                     <Typography variant="h5" color="text.secondary" fontWeight="bold" mb={1}>
-                                        Select a Mentee
+                                        Select a Counselee
                                     </Typography>
                                     <Typography variant="body2" color="text.disabled">
                                         Choose a student from the sidebar to start a conversation.

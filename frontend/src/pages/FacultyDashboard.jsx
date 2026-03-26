@@ -79,13 +79,13 @@ const FacultyDashboard = () => {
   });
 
   const [students, setStudents] = useState([]);
-  const [mentoredStudents, setMentoredStudents] = useState([]);
+  const [counseledStudents, setCounseledStudents] = useState([]);
 
   const [studentSearchTerm, setStudentSearchTerm] = useState("");
   const [studentSemesterFilter, setStudentSemesterFilter] = useState("");
 
-  const [menteeSearchTerm, setMenteeSearchTerm] = useState("");
-  const [menteeSemesterFilter, setMenteeSemesterFilter] = useState("");
+  const [counseleeSearchTerm, setCounseleeSearchTerm] = useState("");
+  const [counseleeSemesterFilter, setCounseleeSemesterFilter] = useState("");
 
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
@@ -102,21 +102,21 @@ const FacultyDashboard = () => {
     });
   }, [students, studentSearchTerm, studentSemesterFilter]);
 
-  const filteredMentees = useMemo(() => {
-    return mentoredStudents.filter((alloc) => {
+  const filteredCounselees = useMemo(() => {
+    return counseledStudents.filter((alloc) => {
       const student = alloc.studentId || {};
       const matchesSearch =
-        menteeSearchTerm === "" ||
-        (student.name?.toLowerCase() || "").includes(menteeSearchTerm.toLowerCase()) ||
-        (student.loginId?.toLowerCase() || "").includes(menteeSearchTerm.toLowerCase());
+        counseleeSearchTerm === "" ||
+        (student.name?.toLowerCase() || "").includes(counseleeSearchTerm.toLowerCase()) ||
+        (student.loginId?.toLowerCase() || "").includes(counseleeSearchTerm.toLowerCase());
 
       const matchesSemester =
-        menteeSemesterFilter === "" ||
-        String(alloc.semester) === String(menteeSemesterFilter);
+        counseleeSemesterFilter === "" ||
+        String(alloc.semester) === String(counseleeSemesterFilter);
 
       return matchesSearch && matchesSemester;
     });
-  }, [mentoredStudents, menteeSearchTerm, menteeSemesterFilter]);
+  }, [counseledStudents, counseleeSearchTerm, counseleeSemesterFilter]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -148,7 +148,7 @@ const FacultyDashboard = () => {
       }
     };
 
-    const fetchMentoredStudents = async () => {
+    const fetchCounseledStudents = async () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
@@ -157,15 +157,15 @@ const FacultyDashboard = () => {
             headers: { Authorization: `Bearer ${token}` },
           },
         );
-        setMentoredStudents(res.data);
+        setCounseledStudents(res.data);
       } catch (err) {
-        console.error("Error fetching mentored students:", err);
+        console.error("Error fetching counseled students:", err);
       }
     };
 
     fetchStats();
     fetchStudents();
-    fetchMentoredStudents();
+    fetchCounseledStudents();
   }, []);
 
   const cards = [
@@ -176,7 +176,7 @@ const FacultyDashboard = () => {
     },
     {
       title: "Assigned Students",
-      value: mentoredStudents.length,
+      value: counseledStudents.length,
       icon: UsersIcon,
     },
     {
@@ -458,7 +458,7 @@ const FacultyDashboard = () => {
                   <Box sx={{ display: "flex", color: "secondary.main" }}>
                     <Users size={20} />
                   </Box>
-                  My Mentees
+                  My Counselees
                 </Typography>
                 <Typography variant="body2" color="text.secondary" mt={0.5}>
                   List of students assigned to you.
@@ -468,8 +468,8 @@ const FacultyDashboard = () => {
               <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, alignItems: "center" }}>
                 <TextField
                   placeholder="Search name or ID..."
-                  value={menteeSearchTerm}
-                  onChange={(e) => setMenteeSearchTerm(e.target.value)}
+                  value={counseleeSearchTerm}
+                  onChange={(e) => setCounseleeSearchTerm(e.target.value)}
                   variant="outlined"
                   size="small"
                   InputProps={{
@@ -485,9 +485,9 @@ const FacultyDashboard = () => {
                 <FormControl size="small" sx={{ minWidth: 150 }}>
                   <InputLabel>Semester</InputLabel>
                   <Select
-                    value={menteeSemesterFilter}
+                    value={counseleeSemesterFilter}
                     label="Semester"
-                    onChange={(e) => setMenteeSemesterFilter(e.target.value)}
+                    onChange={(e) => setCounseleeSemesterFilter(e.target.value)}
                   >
                     <MenuItem value=""><em>All Semesters</em></MenuItem>
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => (
@@ -503,7 +503,7 @@ const FacultyDashboard = () => {
                   color="secondary"
                   sx={{ fontWeight: "medium", borderRadius: 2, ml: { sm: 2 } }}
                 >
-                  💬 Message Mentees
+                  💬 Message Counselees
                 </Button>
               </Box>
             </Box>
@@ -524,7 +524,7 @@ const FacultyDashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredMentees.map((alloc) => (
+                  {filteredCounselees.map((alloc) => (
                     <TableRow key={alloc._id} hover>
                       <TableCell sx={{ fontWeight: "medium" }}>
                         {alloc.studentId?.name}
@@ -546,7 +546,7 @@ const FacultyDashboard = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filteredMentees.length === 0 && (
+                  {filteredCounselees.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
                         <Typography color="text.secondary">

@@ -16,7 +16,7 @@ const ChatWithMentor = () => {
     const [error, setError] = useState('');
     const messagesEndRef = useRef(null);
     const typingTimeout = useRef(null);
-    const [mentor, setMentor] = useState(null);
+    const [counselor, setCounselor] = useState(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -31,7 +31,7 @@ const ChatWithMentor = () => {
                 });
 
                 setRoom(res.data);
-                setMentor(res.data.guideId);
+                setCounselor(res.data.guideId);
 
                 // Join room
                 if (socket) {
@@ -53,7 +53,7 @@ const ChatWithMentor = () => {
             } catch (err) {
                 console.error(err);
                 if (err.response?.status === 404) {
-                    setError('You do not have a mentor assigned yet.');
+                    setError('You do not have a counselor assigned yet.');
                 } else {
                     setError('Failed to load chat.');
                 }
@@ -154,12 +154,12 @@ const ChatWithMentor = () => {
                     {/* Header */}
                     <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'background.paper', zIndex: 10 }}>
                         <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 'bold', width: 48, height: 48 }}>
-                            {mentor?.name?.charAt(0) || 'M'}
+                            {counselor?.name?.charAt(0) || 'C'}
                         </Avatar>
                         <Box>
-                            <Typography variant="h6" fontWeight="bold">{mentor?.name || 'Mentor'}</Typography>
+                            <Typography variant="h6" fontWeight="bold">{counselor?.name || 'Counselor'}</Typography>
                             <Typography variant="caption" sx={{ bgcolor: 'primary.50', color: 'primary.main', px: 1, py: 0.5, borderRadius: 1, fontWeight: 'bold' }}>
-                                Faculty Mentor
+                                Faculty Counselor
                             </Typography>
                         </Box>
                     </Box>
@@ -199,7 +199,7 @@ const ChatWithMentor = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
                                 <Paper elevation={0} sx={{ p: 1, borderRadius: 3, bgcolor: 'transparent' }}>
                                     <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
-                                        {mentor?.name || 'Mentor'} is typing...
+                                        {counselor?.name || 'Counselor'} is typing...
                                     </Typography>
                                 </Paper>
                             </Box>

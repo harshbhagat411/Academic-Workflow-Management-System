@@ -27,7 +27,7 @@ const StudentDashboard = () => {
         attendancePercentage: null
     });
     const [user, setUser] = useState(null);
-    const [mentor, setMentor] = useState(null);
+    const [counselor, setCounselor] = useState(null);
     const [activeTab, setActiveTab] = useState(0); // 0: Overview, 1: Profile
     const [greeting, setGreeting] = useState('');
 
@@ -92,18 +92,18 @@ const StudentDashboard = () => {
             }
         };
         fetchStats();
-        fetchMentor();
+        fetchCounselor();
     }, []);
 
-    const fetchMentor = async () => {
+    const fetchCounselor = async () => {
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get('http://localhost:5000/api/mentors/student', {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setMentor(res.data);
+            setCounselor(res.data);
         } catch (err) {
-            console.error('Error fetching mentor:', err);
+            console.error('Error fetching counselor:', err);
         }
     };
 
@@ -193,31 +193,31 @@ const StudentDashboard = () => {
                             )}
                         </Box>
 
-                        {/* My Mentor Section */}
-                        {mentor && (
+                        {/* My Counselor Section */}
+                        {counselor && (
                             <Card sx={{ mb: 6, borderRadius: 3, boxShadow: 2, overflow: 'hidden' }}>
                                 <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', bgcolor: 'primary.50' }}>
                                     <Typography variant="h6" fontWeight="bold" color="primary.900" display="flex" alignItems="center" gap={1.5}>
                                         <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}><GraduationCap size={16} /></Avatar>
-                                        My Assigned Mentor
+                                        My Assigned Counselor
                                     </Typography>
                                 </Box>
                                 <Box sx={{ p: 4 }}>
                                     <Grid container spacing={4}>
                                         <Grid item xs={12} md={4}>
                                             <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1}>Faculty Name</Typography>
-                                            <Typography variant="h6" fontWeight="medium" mt={0.5}>{mentor.facultyId?.name}</Typography>
+                                            <Typography variant="h6" fontWeight="medium" mt={0.5}>{counselor.facultyId?.name}</Typography>
                                         </Grid>
                                         <Grid item xs={12} md={4}>
                                             <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1}>Contact Email</Typography>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                                                 <Mail size={16} className="text-gray-400" />
-                                                <Typography variant="h6" fontWeight="medium">{mentor.facultyId?.email}</Typography>
+                                                <Typography variant="h6" fontWeight="medium">{counselor.facultyId?.email}</Typography>
                                             </Box>
                                         </Grid>
                                         <Grid item xs={12} md={4}>
                                             <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1}>Department</Typography>
-                                            <Typography variant="h6" fontWeight="medium" mt={0.5}>{mentor.department}</Typography>
+                                            <Typography variant="h6" fontWeight="medium" mt={0.5}>{counselor.department}</Typography>
                                         </Grid>
                                     </Grid>
                                     <Divider sx={{ my: 3 }} />
@@ -230,7 +230,7 @@ const StudentDashboard = () => {
                                             to="/student/chat"
                                             sx={{ borderRadius: 2, px: 3, py: 1.5, fontWeight: 'bold' }}
                                         >
-                                            Chat with Mentor
+                                            Chat with Counselor
                                         </Button>
                                     </Box>
                                 </Box>

@@ -37,7 +37,7 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
                 { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard size={20} />, tabMode: true, path: '/admin/dashboard' },
                 { id: 'staff', label: 'Staff', icon: <Users size={20} />, tabMode: true, path: '/admin/dashboard' },
                 { id: 'students', label: 'Students', icon: <Users size={20} />, tabMode: true, path: '/admin/dashboard' },
-                { id: 'mentors', label: 'Mentors', icon: <Users size={20} />, tabMode: true, path: '/admin/dashboard' },
+                { id: 'mentors', label: 'Counselors', icon: <Users size={20} />, tabMode: true, path: '/admin/dashboard' },
                 { id: 'subjects', label: 'Subjects', icon: <BookOpen size={20} />, tabMode: true, path: '/admin/dashboard' },
                 { id: 'timetable', label: 'Timetable', icon: <Clock size={20} />, tabMode: true, path: '/admin/dashboard' },
                 { id: 'sections', label: 'Sections', icon: <Layers size={20} />, tabMode: true, path: '/admin/dashboard' },
@@ -51,7 +51,7 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
             return [
                 { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard size={20} />, tabMode: true, path: '/faculty/dashboard' },
                 { id: 'students', label: 'All Students', icon: <Users size={20} />, tabMode: true, path: '/faculty/dashboard' },
-                { id: 'mentored', label: 'My Mentees', icon: <Users size={20} />, tabMode: true, path: '/faculty/dashboard' },
+                { id: 'mentored', label: 'My Counselees', icon: <Users size={20} />, tabMode: true, path: '/faculty/dashboard' },
                 { id: 'attendance', label: 'Attendance', icon: <ClipboardCheck size={20} />, tabMode: false, path: '/faculty/attendance' },
                 { id: 'assessments', label: 'Assessments', icon: <FileSpreadsheet size={20} />, tabMode: false, path: '/faculty/assessments' },
                 { id: 'assignments', label: 'Assignments', icon: <BookOpen size={20} />, tabMode: false, path: '/faculty/assignments' },
@@ -68,7 +68,7 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
                 { id: 'marks', label: 'Marks', icon: <FileSpreadsheet size={20} />, tabMode: false, path: '/student/marks' },
                 { id: 'assignments', label: 'Assignments', icon: <BookOpen size={20} />, tabMode: false, path: '/student/assignments' },
                 { id: 'requests', label: 'Academic Requests', icon: <FileText size={20} />, tabMode: false, path: '/student/requests' },
-                { id: 'chat', label: 'Mentor Chat', icon: <MessageCircle size={20} />, tabMode: false, path: '/student/chat' },
+                { id: 'chat', label: 'Counselor Chat', icon: <MessageCircle size={20} />, tabMode: false, path: '/student/chat' },
                 { id: 'profile', label: 'Profile', icon: <User size={20} />, tabMode: true, path: '/student/dashboard' },
                 { id: 'settings', label: 'Settings', icon: <Settings size={20} />, tabMode: false, path: '/settings' },
             ];
