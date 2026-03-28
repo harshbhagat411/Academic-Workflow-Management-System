@@ -45,6 +45,7 @@ const Layout = ({ role, activeTab, setActiveTab, children }) => {
                 { id: 'analytics', label: 'Analytics Reports', icon: <BarChart3 size={20} />, tabMode: false, path: '/admin/analytics' },
                 { id: 'create-user', label: 'Create User', icon: <User size={20} />, tabMode: false, path: '/admin/create-user' },
                 { id: 'bulk-upload', label: 'Bulk Upload', icon: <Upload size={20} />, tabMode: false, path: '/admin/bulk-upload' },
+                { id: 'promote', label: 'Promote Academic Year', icon: <Layers size={20} />, tabMode: false, path: '/admin/promote' },
                 { id: 'settings', label: 'Settings', icon: <Settings size={20} />, tabMode: false, path: '/settings' },
             ];
         } else if (role === 'Faculty') {

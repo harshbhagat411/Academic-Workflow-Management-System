@@ -15,6 +15,9 @@ const userSchema = new mongoose.Schema({
     type: Number,
     required: function () { return this.role === 'Student'; }
   }, // Only for Student
+  maxSemesterReached: { 
+    type: Number 
+  }, // Tracks the highest semester reached
   specialization: {
     type: String,
     enum: ['Programming', 'Database', 'Networks', 'Artificial Intelligence', 'Mathematics', 'Web Development', 'Cloud Computing', 'Data Science', 'Software Engineering', 'Research & Projects'],

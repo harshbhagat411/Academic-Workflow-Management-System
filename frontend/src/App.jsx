@@ -12,6 +12,7 @@ import AcademicRequests from './pages/AcademicRequests';
 import FacultyDashboard from './pages/FacultyDashboard';
 import FacultyRequests from './pages/FacultyRequests';
 import AdminRequests from './pages/AdminRequests'; 
+import PromoteAcademicYear from './pages/PromoteAcademicYear';
 import AnalyticsReports from './pages/AnalyticsReports';
 import RequestAnalytics from './pages/RequestAnalytics';
 import AttendanceAnalytics from './pages/AttendanceAnalytics';
@@ -71,6 +72,11 @@ function App() {
           <Route path="/admin/requests" element={
             <ProtectedRoute allowedRoles={['Admin']}>
               <AdminRequests />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/promote" element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <PromoteAcademicYear />
             </ProtectedRoute>
           } />
           <Route path="/admin/analytics" element={

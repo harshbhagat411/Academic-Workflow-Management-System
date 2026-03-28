@@ -146,7 +146,7 @@ exports.getUnreadCount = async (req, res) => {
         } else if (role === 'Faculty') {
             query.guideId = _id;
         } else {
-            return res.status(403).json({ message: 'Unauthorized access.' });
+            return res.json({ unreadCount: 0 });
         }
 
         const rooms = await ChatRoom.find(query);

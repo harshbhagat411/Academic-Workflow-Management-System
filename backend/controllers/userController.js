@@ -41,7 +41,8 @@ exports.createUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
         const newUser = new User({
-            name, email, phone, gender, role, semester, specialization, department, userId, loginId, password: hashedPassword, section: role === 'Student' ? 'A' : undefined
+            name, email, phone, gender, role, semester, specialization, department, userId, loginId, password: hashedPassword, section: role === 'Student' ? 'A' : undefined,
+            maxSemesterReached: role === 'Student' ? semester : undefined
         });
 
         await newUser.save();
@@ -133,5 +134,43 @@ exports.updateProfile = async (req, res) => {
         res.json(user);
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.promoteActiveStudents = async (req, res) => {
+    try {
+        const { studentIds } = req.body;
+        
+        if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+            return res.status(400).json({ message: 'No student IDs provided for promotion.' });
+        }
+
+        const MAX_SEM = 10;
+        let promotedCount = 0;
+
+        for (const id of studentIds) {
+            const student = await User.findById(id);
+            if (student && student.role === 'Student' && student.status && student.status.toLowerCase() === 'active') {
+                if (student.semester < MAX_SEM) {
+                    student.semester += 1;
+                    
+                    // Update maxSemesterReached
+                    if (!student.maxSemesterReached || student.semester > student.maxSemesterReached) {
+                        student.maxSemesterReached = student.semester;
+                    }
+
+                    // Remove section
+                    student.section = null;
+                    
+                    await student.save();
+                    promotedCount++;
+                }
+            }
+        }
+
+        res.json({ message: `Successfully promoted ${promotedCount} students.` });
+    } catch (error) {
+        console.error("PROMOTE STUDENTS ERROR:", error);
+        res.status(500).json({ message: 'Server error promoting students', detail: error.message });
     }
 };

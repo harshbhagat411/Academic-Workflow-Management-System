@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createUser, getNextId, getAllUsers, updateUserStatus, getFacultyStudents, getStaffList, getStudentList } = require('../controllers/userController');
+const { createUser, getNextId, getAllUsers, updateUserStatus, getFacultyStudents, getStaffList, getStudentList, promoteActiveStudents } = require('../controllers/userController');
 const { uploadBulkUsers } = require('../controllers/bulkUserController');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
@@ -15,6 +15,8 @@ router.get('/staff', protect, authorizeRoles('Admin'), getStaffList); // Phase 1
 router.get('/students', protect, authorizeRoles('Admin'), getStudentList); // Phase 16
 router.patch('/:id/status', protect, authorizeRoles('Admin'), updateUserStatus);
 
+// Promotion Route
+router.put('/promote', protect, authorizeRoles('Admin'), promoteActiveStudents);
 // Faculty Routes
 router.get('/faculty/students', protect, authorizeRoles('Faculty'), getFacultyStudents);
 
