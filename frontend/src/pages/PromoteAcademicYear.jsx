@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Typography, Card, CardContent, Button as MuiButton,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Snackbar, Alert
 } from '@mui/material';
 import Layout from '../components/Layout';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -12,7 +12,11 @@ const PromoteAcademicYear = () => {
     const [students, setStudents] = useState([]);
     const [selectedStudentIds, setSelectedStudentIds] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
     const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', description: '', type: 'default', action: null });
+
+    const handleCloseToast = () => setToast(prev => ({ ...prev, open: false }));
 
     const closeConfirmDialog = () => setConfirmDialog(prev => ({ ...prev, open: false }));
 
@@ -78,6 +82,7 @@ const PromoteAcademicYear = () => {
             description: `Are you sure you want to promote ${selectedStudentIds.length} selected students to the next academic year?`,
             type: 'default',
             action: async () => {
+                setIsProcessing(true);
                 try {
                     const token = localStorage.getItem('token');
                     const res = await axios.put('http://localhost:5000/api/users/promote', {
@@ -85,11 +90,22 @@ const PromoteAcademicYear = () => {
                     }, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
-                    alert(res.data.message || 'Promotion successful!');
-                    fetchActiveStudents(); // Refresh the list
+                    
+                    if (res.data.success || res.status === 200) {
+                        const count = res.data.promotedCount || selectedStudentIds.length;
+                        setToast({ open: true, message: `${count} students promoted successfully`, severity: 'success' });
+                        
+                        setTimeout(() => {
+                            fetchActiveStudents().finally(() => setIsProcessing(false));
+                        }, 1500);
+                    } else {
+                        setToast({ open: true, message: 'Failed to promote students', severity: 'error' });
+                        setIsProcessing(false);
+                    }
                 } catch (err) {
                     console.error('Error promoting students:', err);
-                    alert(err.response?.data?.message || 'Failed to promote students');
+                    setToast({ open: true, message: err.response?.data?.message || 'Failed to promote students', severity: 'error' });
+                    setIsProcessing(false);
                 }
             }
         });
@@ -117,9 +133,9 @@ const PromoteAcademicYear = () => {
                                 variant="contained"
                                 color="primary"
                                 onClick={handlePromoteStudents}
-                                disabled={selectedStudentIds.length === 0 || loading}
+                                disabled={selectedStudentIds.length === 0 || loading || isProcessing}
                             >
-                                Promote Selected Students
+                                {isProcessing ? 'Processing...' : 'Promote Selected Students'}
                             </MuiButton>
                         </Box>
 
@@ -198,6 +214,17 @@ const PromoteAcademicYear = () => {
                 cancelText="Cancel"
                 type={confirmDialog.type}
             />
+            
+            <Snackbar 
+                open={toast.open} 
+                autoHideDuration={4000} 
+                onClose={handleCloseToast}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={handleCloseToast} severity={toast.severity} sx={{ width: '100%' }} variant="filled">
+                    {toast.message}
+                </Alert>
+            </Snackbar>
         </Layout>
     );
 };

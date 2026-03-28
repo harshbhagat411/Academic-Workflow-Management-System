@@ -168,7 +168,7 @@ exports.promoteActiveStudents = async (req, res) => {
             }
         }
 
-        res.json({ message: `Successfully promoted ${promotedCount} students.` });
+        res.json({ success: true, promotedCount, message: `${promotedCount} students promoted successfully.` });
     } catch (error) {
         console.error("PROMOTE STUDENTS ERROR:", error);
         res.status(500).json({ message: 'Server error promoting students', detail: error.message });
