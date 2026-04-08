@@ -13,9 +13,12 @@ import { LayoutDashboard, Users, LogOut, FileText, Upload, Shield, Clock, Search
 import SecuritySection from '../components/SecuritySection';
 import StatCard from '../components/StatCard';
 import { Calendar, Users as UsersIcon, BookOpen, AlertCircle } from 'lucide-react';
+import { Skeleton } from 'boneyard-js/react';
+import { useDelayedLoading } from '../hooks/useDelayedLoading';
 
 // Helper Component defined outside to prevent re-renders losing focus
-const UserTable = ({ data, type, searchTerm, setSearchTerm, semesterFilter, setSemesterFilter, toggleUserStatus }) => {
+const UserTable = ({ data, loading, error, type, searchTerm, setSearchTerm, semesterFilter, setSemesterFilter, toggleUserStatus }) => {
+    const showLoading = useDelayedLoading(loading);
     const filteredData = React.useMemo(() => {
         return data.filter(user => {
             const matchesSemester = type === 'Student' && semesterFilter
@@ -101,7 +104,21 @@ const UserTable = ({ data, type, searchTerm, setSearchTerm, semesterFilter, setS
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredData.length === 0 ? (
+                        {showLoading ? (
+                            Array(5).fill({}).map((_, index) => (
+                                <Skeleton name="table-row-skeleton" loading={true} key={`skeleton-${index}`}>
+                                    <TableRow hover>
+                                        <TableCell colSpan={type === 'Faculty' ? 7 : 8} align="center" sx={{ py: 3, color: 'text.secondary' }}>Loading...</TableCell>
+                                    </TableRow>
+                                </Skeleton>
+                            ))
+                        ) : error ? (
+                            <TableRow>
+                                <TableCell colSpan={type === 'Faculty' ? 7 : 8} align="center" sx={{ py: 3, color: 'error.main' }}>
+                                    {error}
+                                </TableCell>
+                            </TableRow>
+                        ) : filteredData.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={type === 'Faculty' ? 7 : 8} align="center" sx={{ py: 3, color: 'text.secondary' }}>
                                     No users found.
@@ -109,7 +126,8 @@ const UserTable = ({ data, type, searchTerm, setSearchTerm, semesterFilter, setS
                             </TableRow>
                         ) : (
                             filteredData.map((user, index) => (
-                                <TableRow key={user._id} hover>
+                                <Skeleton name="table-row-skeleton" loading={false} key={user._id}>
+                                <TableRow hover>
                                     <TableCell sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>{data.indexOf(user) + 1}</TableCell>
                                     <TableCell sx={{ fontWeight: 500 }}>{user.name}</TableCell>
                                     <TableCell sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>{user.loginId}</TableCell>
@@ -141,6 +159,7 @@ const UserTable = ({ data, type, searchTerm, setSearchTerm, semesterFilter, setS
                                         </MuiButton>
                                     </TableCell>
                                 </TableRow>
+                                </Skeleton>
                             ))
                         )}
                     </TableBody>
@@ -176,9 +195,17 @@ const AdminDashboard = () => {
         totalFaculty: 0,
         totalSubjects: 0
     });
+    const [loadingStats, setLoadingStats] = useState(true);
+    const showLoadingStats = useDelayedLoading(loadingStats);
+    const [statsError, setStatsError] = useState('');
+    
+    // For Users table
+    const [usersLoading, setUsersLoading] = useState(true);
+    const [usersError, setUsersError] = useState('');
 
     useEffect(() => {
         const fetchDashboardData = async () => {
+            setLoadingStats(true);
             try {
                 const token = localStorage.getItem('token');
                 
@@ -195,6 +222,9 @@ const AdminDashboard = () => {
                 });
             } catch (err) {
                 console.error('Error fetching dashboard counts:', err);
+                setStatsError('Failed to load dashboard statistics.');
+            } finally {
+                setLoadingStats(false);
             }
         };
         fetchDashboardData();
@@ -640,6 +670,8 @@ const AdminDashboard = () => {
     };
 
     const fetchStaffList = async () => {
+        setUsersLoading(true);
+        setUsersError('');
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get('http://localhost:5000/api/users/staff', {
@@ -648,10 +680,15 @@ const AdminDashboard = () => {
             setUsers(res.data);
         } catch (err) {
             console.error('Error fetching staff:', err);
+            setUsersError('Error fetching staff list.');
+        } finally {
+            setUsersLoading(false);
         }
     };
 
     const fetchStudentList = async () => {
+        setUsersLoading(true);
+        setUsersError('');
         try {
             const token = localStorage.getItem('token');
             // Always fetch all students, let frontend handle filtering
@@ -663,6 +700,9 @@ const AdminDashboard = () => {
             setUsers(res.data);
         } catch (err) {
             console.error('Error fetching students:', err);
+            setUsersError('Error fetching students list.');
+        } finally {
+            setUsersLoading(false);
         }
     };
 
@@ -715,33 +755,35 @@ const AdminDashboard = () => {
         setSemesterFilter('');
     }, [activeTab]);
 
-    const cards = [
-        {
-            icon: Calendar,
-            title: "Total Students",
-            value: dashboardStats.totalStudents || "0"
-        },
-        {
-            icon: UsersIcon,
-            title: "Total Faculty",
-            value: dashboardStats.totalFaculty || "0"
-        },
-        {
-            icon: BookOpen,
-            title: "Total Subjects",
-            value: dashboardStats.totalSubjects || "0"
-        },
-        {
-            icon: AlertCircle,
-            title: "Pending Academic Requests",
-            value: stats.pending || "0"
-        }
-    ];
+    const displayCards = showLoadingStats 
+        ? Array(4).fill({ title: 'Loading...', value: '-', icon: Calendar })
+        : [
+            {
+                icon: Calendar,
+                title: "Total Students",
+                value: dashboardStats.totalStudents || "0"
+            },
+            {
+                icon: UsersIcon,
+                title: "Total Faculty",
+                value: dashboardStats.totalFaculty || "0"
+            },
+            {
+                icon: BookOpen,
+                title: "Total Subjects",
+                value: dashboardStats.totalSubjects || "0"
+            },
+            {
+                icon: AlertCircle,
+                title: "Pending Academic Requests",
+                value: stats.pending || "0"
+            }
+        ];
 
-    const isSingleRow = cards.length <= 4;
-    const half = Math.ceil(cards.length / 2);
-    const firstRow = isSingleRow ? cards : cards.slice(0, half);
-    const secondRow = isSingleRow ? [] : cards.slice(half);
+    const isSingleRow = displayCards.length <= 4;
+    const half = Math.ceil(displayCards.length / 2);
+    const firstRow = isSingleRow ? displayCards : displayCards.slice(0, half);
+    const secondRow = isSingleRow ? [] : displayCards.slice(half);
 
     return (
         <Layout role="Admin" activeTab={activeTab} setActiveTab={setActiveTab}>
@@ -749,10 +791,19 @@ const AdminDashboard = () => {
             {activeTab === 'overview' && (
                 <Box sx={{ mt: 3 }}>
                     <Box sx={{ mb: 4 }}>
+                        {statsError && (
+                            <Box mb={3} p={2} bgcolor="error.light" borderRadius={2} border={1} borderColor="error.main">
+                                <Typography color="error.dark" fontWeight="bold" display="flex" alignItems="center" gap={1}>
+                                    <AlertCircle size={20} /> {statsError}
+                                </Typography>
+                            </Box>
+                        )}
                         <Box sx={{ display: "flex", gap: 3, mb: isSingleRow ? 0 : 3 }}>
                             {firstRow.map((card, index) => (
                                 <Box key={index} sx={{ flex: 1 }}>
-                                    <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                                    <Skeleton name="stat-card" loading={showLoadingStats}>
+                                        <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                                    </Skeleton>
                                 </Box>
                             ))}
                         </Box>
@@ -760,7 +811,9 @@ const AdminDashboard = () => {
                             <Box sx={{ display: "flex", gap: 3 }}>
                                 {secondRow.map((card, index) => (
                                     <Box key={index} sx={{ flex: 1 }}>
-                                        <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                                        <Skeleton name="stat-card" loading={showLoadingStats}>
+                                            <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                                        </Skeleton>
                                     </Box>
                                 ))}
                             </Box>
@@ -815,6 +868,8 @@ const AdminDashboard = () => {
 
             {activeTab === 'staff' && <UserTable
                 data={users}
+                loading={usersLoading}
+                error={usersError}
                 type="Staff"
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
@@ -825,6 +880,8 @@ const AdminDashboard = () => {
 
             {activeTab === 'students' && <UserTable
                 data={users}
+                loading={usersLoading}
+                error={usersError}
                 type="Student"
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}

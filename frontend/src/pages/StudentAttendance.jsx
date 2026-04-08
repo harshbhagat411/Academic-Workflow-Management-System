@@ -8,10 +8,14 @@ import {
 } from '@mui/material';
 import { BookOpen, X, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import Layout from '../components/Layout';
+import { Skeleton } from 'boneyard-js/react';
+import { useDelayedLoading } from '../hooks/useDelayedLoading';
 
 const StudentAttendance = () => {
     const [summary, setSummary] = useState([]);
     const [loading, setLoading] = useState(true);
+    const showLoading = useDelayedLoading(loading);
+    const [errorMsg, setErrorMsg] = useState('');
     const [selectedSubject, setSelectedSubject] = useState(null);
     const [details, setDetails] = useState([]);
 
@@ -22,6 +26,7 @@ const StudentAttendance = () => {
     }, []);
 
     const fetchSummary = async () => {
+        setLoading(true);
         try {
             const res = await axios.get('http://localhost:5000/api/attendance/student/summary', {
                 headers: { Authorization: `Bearer ${token}` }
@@ -29,6 +34,7 @@ const StudentAttendance = () => {
             setSummary(res.data);
         } catch (err) {
             console.error(err);
+            setErrorMsg('Failed to fetch attendance summary.');
         } finally {
             setLoading(false);
         }
@@ -68,14 +74,69 @@ const StudentAttendance = () => {
                     My Attendance
                 </Typography>
 
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-                        <CircularProgress />
+                {errorMsg && (
+                    <Box mb={3} p={2} bgcolor="error.light" borderRadius={2} border={1} borderColor="error.main">
+                        <Typography color="error.dark" fontWeight="bold" display="flex" alignItems="center" gap={1}>
+                            <XCircle size={20} /> {errorMsg}
+                        </Typography>
                     </Box>
-                ) : (
-                    <Grid container spacing={4} sx={{ mb: 4 }}>
-                        {summary.map((item, index) => (
+                )}
+
+                <Grid container spacing={4} sx={{ mb: 4 }}>
+                    {showLoading ? (
+                        Array(6).fill({ subjectName: 'Loading Subject Name...', subjectCode: 'CODE101', percentage: 0, attendedLectures: 0, totalLectures: 0 }).map((item, index) => (
+                            <Grid item xs={12} sm={6} md={4} key={`skeleton-${index}`}>
+                                <Skeleton name="attendance-card" loading={true}>
+                                    <Card 
+                                        sx={{ 
+                                            borderRadius: 3, 
+                                            boxShadow: 3, 
+                                            borderLeft: 6, 
+                                            borderColor: getCardBorder(item.percentage),
+                                            transition: 'transform 0.2s, box-shadow 0.2s',
+                                        }}
+                                    >
+                                        <CardActionArea sx={{ p: 3, height: '100%' }}>
+                                            <Typography variant="h6" fontWeight="bold" gutterBottom noWrap title={item.subjectName}>
+                                                {item.subjectName}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary" fontFamily="monospace" mb={3}>
+                                                {item.subjectCode}
+                                            </Typography>
+
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                                <Box>
+                                                    <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1} display="block" mb={0.5}>
+                                                        Attendance
+                                                    </Typography>
+                                                    <Typography variant="h4" fontWeight="bold" color={getStatusColor(item.percentage)}>
+                                                        {item.percentage}%
+                                                    </Typography>
+                                                </Box>
+                                                <Box sx={{ textAlign: 'right' }}>
+                                                    <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1} display="block" mb={0.5}>
+                                                        Lectures
+                                                    </Typography>
+                                                    <Typography variant="h6" fontWeight="medium">
+                                                        {item.attendedLectures} <Typography component="span" color="text.disabled" variant="body2">/</Typography> {item.totalLectures}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </CardActionArea>
+                                    </Card>
+                                </Skeleton>
+                            </Grid>
+                        ))
+                    ) : summary.length === 0 ? (
+                        <Grid item xs={12}>
+                            <Typography color="text.secondary" textAlign="center" mt={5}>
+                                No attendance records found.
+                            </Typography>
+                        </Grid>
+                    ) : (
+                        summary.map((item, index) => (
                             <Grid item xs={12} sm={6} md={4} key={index}>
+                              <Skeleton name="attendance-card" loading={false}>
                                 <Card 
                                     sx={{ 
                                         borderRadius: 3, 
@@ -114,10 +175,11 @@ const StudentAttendance = () => {
                                         </Box>
                                     </CardActionArea>
                                 </Card>
+                              </Skeleton>
                             </Grid>
-                        ))}
-                    </Grid>
-                )}
+                        ))
+                    )}
+                </Grid>
 
                 {/* Detailed View Dialog */}
                 <Dialog 

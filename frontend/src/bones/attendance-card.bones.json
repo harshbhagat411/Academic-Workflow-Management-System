@@ -1,0 +1,120 @@
+{
+  "breakpoints": {
+    "375": {
+      "name": "attendance-card",
+      "viewportWidth": 286,
+      "width": 286,
+      "height": 197,
+      "bones": [
+        [
+          0,
+          0,
+          100,
+          197,
+          24,
+          true
+        ],
+        [
+          2.096,
+          0,
+          97.904,
+          197,
+          24
+        ]
+      ]
+    },
+    "640": {
+      "name": "attendance-card",
+      "viewportWidth": 286,
+      "width": 286,
+      "height": 197,
+      "bones": [
+        [
+          0,
+          0,
+          100,
+          197,
+          24,
+          true
+        ],
+        [
+          2.096,
+          0,
+          97.904,
+          197,
+          24
+        ]
+      ]
+    },
+    "768": {
+      "name": "attendance-card",
+      "viewportWidth": 286,
+      "width": 286,
+      "height": 197,
+      "bones": [
+        [
+          0,
+          0,
+          100,
+          197,
+          24,
+          true
+        ],
+        [
+          2.096,
+          0,
+          97.904,
+          197,
+          24
+        ]
+      ]
+    },
+    "1024": {
+      "name": "attendance-card",
+      "viewportWidth": 286,
+      "width": 286,
+      "height": 197,
+      "bones": [
+        [
+          0,
+          0,
+          100,
+          197,
+          24,
+          true
+        ],
+        [
+          2.096,
+          0,
+          97.904,
+          197,
+          24
+        ]
+      ]
+    },
+    "1536": {
+      "name": "attendance-card",
+      "viewportWidth": 286,
+      "width": 286,
+      "height": 197,
+      "bones": [
+        [
+          0,
+          0,
+          100,
+          197,
+          24,
+          true
+        ],
+        [
+          2.096,
+          0,
+          97.904,
+          197,
+          24
+        ]
+      ]
+    }
+  },
+  "_hash": "0b775dd138ffb74b2e0fab4b63a1ec59"
+}

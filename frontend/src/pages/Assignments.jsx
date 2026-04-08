@@ -10,11 +10,14 @@ import { BookOpen, Plus, UploadCloud, CheckCircle, XCircle, Eye, Trash2, Calenda
 import axios from 'axios';
 import Layout from '../components/Layout';
 import { format } from 'date-fns';
+import { Skeleton } from 'boneyard-js/react';
+import { useDelayedLoading } from '../hooks/useDelayedLoading';
 
 const Assignments = () => {
     const role = localStorage.getItem('role');
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const showLoading = useDelayedLoading(loading);
     const [errorMsg, setErrorMsg] = useState('');
 
     // Faculty: Create Assignment State
@@ -189,14 +192,6 @@ const Assignments = () => {
     };
 
     // RENDERS
-    if (loading) return (
-        <Layout role={role}>
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-                <CircularProgress />
-            </Box>
-        </Layout>
-    );
-
     return (
         <Layout role={role}>
             <Box sx={{ maxWidth: 1200, mx: 'auto', animation: 'fadeIn 0.5s ease-out' }}>
@@ -215,7 +210,49 @@ const Assignments = () => {
                 {errorMsg && <Alert severity="error" sx={{ mb: 3 }}>{errorMsg}</Alert>}
 
                 <Grid container spacing={3}>
-                    {assignments.length === 0 ? (
+                    {showLoading ? (
+                        Array(6).fill({ _id: Math.random(), title: 'Loading...', subjectId: { name: 'Loading Subject' }, semester: '-', description: 'Loading description...', dueDate: new Date().toISOString() }).map((assign, idx) => {
+                            const isPastDue = false;
+                            return (
+                                <Grid size={{ xs: 12, md: 6, lg: 4 }} key={`skeleton-${idx}`}>
+                                  <Skeleton name="assignment-card" loading={true}>
+                                    <Card sx={{ borderRadius: 3, boxShadow: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                        <CardContent sx={{ flexGrow: 1 }}>
+                                            <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                                {assign.title}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary" mb={2}>
+                                                {assign.subjectId?.name || assign.subjectId} (Sem {assign.semester})
+                                            </Typography>
+                                            <Typography variant="body2" mb={3} sx={{
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 3,
+                                                WebkitBoxOrient: 'vertical',
+                                                overflow: 'hidden'
+                                            }}>
+                                                {assign.description}
+                                            </Typography>
+                                            <Box display="flex" alignItems="center" gap={1} mb={2}>
+                                                <Calendar size={16} color={isPastDue ? '#d32f2f' : '#666'} />
+                                                <Typography variant="body2" fontWeight="bold" color={isPastDue ? 'error.main' : 'text.secondary'}>
+                                                    Due: {format(new Date(assign.dueDate), 'PPP')}
+                                                </Typography>
+                                            </Box>
+                                            {role === 'Student' && (
+                                                <Box mt={2} p={1.5} bgcolor="background.default" borderRadius={2}>
+                                                    <Button variant="contained" fullWidth startIcon={<UploadCloud size={18} />}>Upload Submission</Button>
+                                                </Box>
+                                            )}
+                                            {role === 'Faculty' && (
+                                                <Button variant="outlined" fullWidth sx={{ mt: 2 }}>View Submissions</Button>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                  </Skeleton>
+                                </Grid>
+                            );
+                        })
+                    ) : assignments.length === 0 ? (
                         <Grid size={{ xs: 12 }}>
                             <Typography color="text.secondary" textAlign="center" mt={5}>
                                 No assignments found.
@@ -226,6 +263,7 @@ const Assignments = () => {
                             const isPastDue = new Date() > new Date(assign.dueDate);
                             return (
                                 <Grid size={{ xs: 12, md: 6, lg: 4 }} key={assign._id}>
+                                  <Skeleton name="assignment-card" loading={false}>
                                     <Card sx={{ borderRadius: 3, boxShadow: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
                                         <CardContent sx={{ flexGrow: 1 }}>
                                             <Typography variant="h6" fontWeight="bold" gutterBottom>
@@ -300,6 +338,7 @@ const Assignments = () => {
                                             )}
                                         </CardContent>
                                     </Card>
+                                  </Skeleton>
                                 </Grid>
                             );
                         })

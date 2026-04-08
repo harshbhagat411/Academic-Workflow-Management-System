@@ -10,6 +10,8 @@ import {
     Users, LogOut, FileText, Shield, Calendar, Users as UsersIcon,
     Mail, GraduationCap, MessageSquare
 } from 'lucide-react';
+import { Skeleton } from 'boneyard-js/react';
+import { useDelayedLoading } from '../hooks/useDelayedLoading';
 import ProfileSection from '../components/ProfileSection';
 import StatCard from '../components/StatCard';
 import SecuritySection from '../components/SecuritySection';
@@ -30,6 +32,9 @@ const StudentDashboard = () => {
     const [counselor, setCounselor] = useState(null);
     const [activeTab, setActiveTab] = useState(0); // 0: Overview, 1: Profile
     const [greeting, setGreeting] = useState('');
+    const [loading, setLoading] = useState(true);
+    const showLoading = useDelayedLoading(loading);
+    const [errorMsg, setErrorMsg] = useState('');
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -37,75 +42,48 @@ const StudentDashboard = () => {
         else if (hour < 18) setGreeting('Good Afternoon');
         else setGreeting('Good Evening');
 
-        const fetchUser = async () => {
+        const fetchData = async () => {
+            setLoading(true);
             try {
                 const token = localStorage.getItem('token');
-                const res = await axios.get('http://localhost:5000/api/users/me', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setUser(res.data);
-            } catch (err) {
-                console.error('Error fetching user:', err);
-            }
-        };
-        fetchUser();
-    }, []);
+                if (!token) return;
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                
-                // Fetch Request Stats
-                const reqStatsRes = await axios.get('http://localhost:5000/api/requests/stats/student', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                
-                // Fetch Attendance Summary
-                let attendancePercentage = null;
-                try {
-                    const attRes = await axios.get('http://localhost:5000/api/attendance/student/summary', {
-                        headers: { Authorization: `Bearer ${token}` }
+                const [userRes, statsRes, attRes, mentorRes] = await Promise.allSettled([
+                    axios.get('http://localhost:5000/api/users/me', { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get('http://localhost:5000/api/requests/stats/student', { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get('http://localhost:5000/api/attendance/student/summary', { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get('http://localhost:5000/api/mentors/student', { headers: { Authorization: `Bearer ${token}` } })
+                ]);
+
+                if (userRes.status === 'fulfilled') setUser(userRes.value.data);
+                else setErrorMsg('Failed to fetch user data.');
+
+                let attPct = null;
+                if (attRes.status === 'fulfilled' && attRes.value.data && attRes.value.data.length > 0) {
+                    let totalAttended = 0, totalLectures = 0;
+                    attRes.value.data.forEach(subject => {
+                        totalAttended += subject.attendedLectures;
+                        totalLectures += subject.totalLectures;
                     });
-                    
-                    if (attRes.data && attRes.data.length > 0) {
-                        let totalAttended = 0;
-                        let totalLectures = 0;
-                        attRes.data.forEach(subject => {
-                            totalAttended += subject.attendedLectures;
-                            totalLectures += subject.totalLectures;
-                        });
-                        if (totalLectures > 0) {
-                            attendancePercentage = Math.round((totalAttended / totalLectures) * 100);
-                        }
-                    }
-                } catch (err) {
-                    console.error('Error fetching attendance:', err);
+                    if (totalLectures > 0) attPct = Math.round((totalAttended / totalLectures) * 100);
                 }
 
-                setStats({
-                    ...reqStatsRes.data,
-                    attendancePercentage
-                });
+                if (statsRes.status === 'fulfilled') {
+                    setStats({ ...statsRes.value.data, attendancePercentage: attPct });
+                }
+
+                if (mentorRes.status === 'fulfilled') setCounselor(mentorRes.value.data);
+
             } catch (err) {
-                console.error('Error fetching stats:', err);
+                console.error(err);
+                setErrorMsg('An error occurred while loading dashboard.');
+            } finally {
+                setLoading(false);
             }
         };
-        fetchStats();
-        fetchCounselor();
-    }, []);
 
-    const fetchCounselor = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/mentors/student', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setCounselor(res.data);
-        } catch (err) {
-            console.error('Error fetching counselor:', err);
-        }
-    };
+        fetchData();
+    }, []);
 
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
@@ -141,10 +119,14 @@ const StudentDashboard = () => {
         }
     ];
 
-    const isSingleRow = cards.length <= 4;
-    const half = Math.ceil(cards.length / 2);
-    const firstRow = isSingleRow ? cards : cards.slice(0, half);
-    const secondRow = isSingleRow ? [] : cards.slice(half);
+    const displayCards = showLoading 
+        ? Array(4).fill({ title: 'Loading...', value: '-', icon: Clock }) 
+        : cards;
+
+    const isSingleRow = displayCards.length <= 4;
+    const half = Math.ceil(displayCards.length / 2);
+    const firstRow = isSingleRow ? displayCards : displayCards.slice(0, half);
+    const secondRow = isSingleRow ? [] : displayCards.slice(half);
 
     return (
         <Layout role="Student" activeTab="dashboard">
@@ -166,6 +148,14 @@ const StudentDashboard = () => {
                     </Tabs>
                 </Box>
 
+                {errorMsg && (
+                    <Box mb={4} p={2} bgcolor="error.light" borderRadius={2} border={1} borderColor="error.main">
+                        <Typography color="error.dark" fontWeight="bold" display="flex" alignItems="center" gap={1}>
+                            <AlertCircle size={20} /> {errorMsg}
+                        </Typography>
+                    </Box>
+                )}
+
                 {activeTab === 1 ? (
                     <Box sx={{ maxWidth: 800, mx: 'auto' }}>
                         <ProfileSection />
@@ -178,7 +168,9 @@ const StudentDashboard = () => {
                             <Box sx={{ display: "flex", gap: 3, mb: isSingleRow ? 0 : 3 }}>
                                 {firstRow.map((card, index) => (
                                     <Box key={index} sx={{ flex: 1 }}>
-                                        <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                                        <Skeleton name="stat-card" loading={showLoading}>
+                                            <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                                        </Skeleton>
                                     </Box>
                                 ))}
                             </Box>
@@ -186,7 +178,9 @@ const StudentDashboard = () => {
                                 <Box sx={{ display: "flex", gap: 3 }}>
                                     {secondRow.map((card, index) => (
                                         <Box key={index} sx={{ flex: 1 }}>
-                                            <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                                            <Skeleton name="stat-card" loading={showLoading}>
+                                                <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                                            </Skeleton>
                                         </Box>
                                     ))}
                                 </Box>
@@ -194,7 +188,8 @@ const StudentDashboard = () => {
                         </Box>
 
                         {/* My Counselor Section */}
-                        {counselor && (
+                        {(showLoading ? true : counselor) && (
+                            <Skeleton name="counselor-card" loading={showLoading}>
                             <Card sx={{ mb: 6, borderRadius: 3, boxShadow: 2, overflow: 'hidden' }}>
                                 <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', bgcolor: 'primary.50' }}>
                                     <Typography variant="h6" fontWeight="bold" color="primary.900" display="flex" alignItems="center" gap={1.5}>
@@ -206,18 +201,18 @@ const StudentDashboard = () => {
                                     <Grid container spacing={4}>
                                         <Grid item xs={12} md={4}>
                                             <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1}>Faculty Name</Typography>
-                                            <Typography variant="h6" fontWeight="medium" mt={0.5}>{counselor.facultyId?.name}</Typography>
+                                            <Typography variant="h6" fontWeight="medium" mt={0.5}>{counselor?.facultyId?.name || 'Loading...'}</Typography>
                                         </Grid>
                                         <Grid item xs={12} md={4}>
                                             <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1}>Contact Email</Typography>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                                                 <Mail size={16} className="text-gray-400" />
-                                                <Typography variant="h6" fontWeight="medium">{counselor.facultyId?.email}</Typography>
+                                                <Typography variant="h6" fontWeight="medium">{counselor?.facultyId?.email || 'Loading...'}</Typography>
                                             </Box>
                                         </Grid>
                                         <Grid item xs={12} md={4}>
                                             <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1}>Department</Typography>
-                                            <Typography variant="h6" fontWeight="medium" mt={0.5}>{counselor.department}</Typography>
+                                            <Typography variant="h6" fontWeight="medium" mt={0.5}>{counselor?.department || 'Loading...'}</Typography>
                                         </Grid>
                                     </Grid>
                                     <Divider sx={{ my: 3 }} />
@@ -235,6 +230,7 @@ const StudentDashboard = () => {
                                     </Box>
                                 </Box>
                             </Card>
+                            </Skeleton>
                         )}
 
                         {/* Quick Link Buttons (replaces text links) */}

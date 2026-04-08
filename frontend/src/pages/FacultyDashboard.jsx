@@ -44,6 +44,8 @@ import SecuritySection from "../components/SecuritySection";
 import ProfileSection from "../components/ProfileSection";
 import StatCard from "../components/StatCard";
 import Layout from "../components/Layout";
+import { Skeleton } from 'boneyard-js/react';
+import { useDelayedLoading } from '../hooks/useDelayedLoading';
 
 const FacultyDashboard = () => {
   const navigate = useNavigate();
@@ -77,9 +79,19 @@ const FacultyDashboard = () => {
     reviewed: 0,
     totalHandled: 0,
   });
+  const [loadingStats, setLoadingStats] = useState(true);
+  const showLoadingStats = useDelayedLoading(loadingStats);
+  const [statsError, setStatsError] = useState("");
 
   const [students, setStudents] = useState([]);
+  const [loadingStudents, setLoadingStudents] = useState(true);
+  const showLoadingStudents = useDelayedLoading(loadingStudents);
+  const [studentsError, setStudentsError] = useState("");
+
   const [counseledStudents, setCounseledStudents] = useState([]);
+  const [loadingCounseled, setLoadingCounseled] = useState(true);
+  const showLoadingCounseled = useDelayedLoading(loadingCounseled);
+  const [counseledError, setCounseledError] = useState("");
 
   const [studentSearchTerm, setStudentSearchTerm] = useState("");
   const [studentSemesterFilter, setStudentSemesterFilter] = useState("");
@@ -120,6 +132,7 @@ const FacultyDashboard = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
+      setLoadingStats(true);
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
@@ -131,9 +144,13 @@ const FacultyDashboard = () => {
         setStats(res.data);
       } catch (err) {
         console.error("Error fetching stats:", err);
+        setStatsError("Failed to fetch dashboard statistics.");
+      } finally {
+        setLoadingStats(false);
       }
     };
     const fetchStudents = async () => {
+      setLoadingStudents(true);
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
@@ -145,10 +162,14 @@ const FacultyDashboard = () => {
         setStudents(res.data);
       } catch (err) {
         console.error("Error fetching students:", err);
+        setStudentsError("Failed to fetch students.");
+      } finally {
+        setLoadingStudents(false);
       }
     };
 
     const fetchCounseledStudents = async () => {
+      setLoadingCounseled(true);
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
@@ -160,6 +181,9 @@ const FacultyDashboard = () => {
         setCounseledStudents(res.data);
       } catch (err) {
         console.error("Error fetching counseled students:", err);
+        setCounseledError("Failed to fetch counseled students.");
+      } finally {
+        setLoadingCounseled(false);
       }
     };
 
@@ -168,7 +192,7 @@ const FacultyDashboard = () => {
     fetchCounseledStudents();
   }, []);
 
-  const cards = [
+  const displayCards = showLoadingStats ? Array(8).fill({ title: "Loading...", value: "-", icon: Calendar }) : [
     {
       title: "Today's Lectures",
       value: "5",
@@ -215,9 +239,9 @@ const FacultyDashboard = () => {
     },
   ];
 
-  const half = Math.ceil(cards.length / 2);
-  const firstRow = cards.slice(0, half);
-  const secondRow = cards.slice(half);
+  const half = Math.ceil(displayCards.length / 2);
+  const firstRow = displayCards.slice(0, half);
+  const secondRow = displayCards.slice(half);
 
   return (
     <Layout role="Faculty" activeTab={activeTab} setActiveTab={setActiveTab}>
@@ -238,17 +262,28 @@ const FacultyDashboard = () => {
         {activeTab === "overview" && (
           <>
             <Box sx={{ mb: 4 }}>
-              <Box sx={{ display: "flex", gap: 3, mb: 3 }}>
+              {statsError && (
+                  <Box mb={3} p={2} bgcolor="error.light" borderRadius={2} border={1} borderColor="error.main">
+                      <Typography color="error.dark" fontWeight="bold" display="flex" alignItems="center" gap={1}>
+                          <AlertCircle size={20} /> {statsError}
+                      </Typography>
+                  </Box>
+              )}
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, mb: 3 }}>
                 {firstRow.map((card, index) => (
-                  <Box key={index} sx={{ flex: 1 }}>
-                    <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                  <Box key={index} sx={{ flex: 1, minWidth: { xs: '100%', sm: '45%', md: '20%' } }}>
+                    <Skeleton name="stat-card" loading={showLoadingStats}>
+                      <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                    </Skeleton>
                   </Box>
                 ))}
               </Box>
-              <Box sx={{ display: "flex", gap: 3 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
                 {secondRow.map((card, index) => (
-                  <Box key={index} sx={{ flex: 1 }}>
-                    <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                  <Box key={index} sx={{ flex: 1, minWidth: { xs: '100%', sm: '45%', md: '20%' } }}>
+                    <Skeleton name="stat-card" loading={showLoadingStats}>
+                      <StatCard sx={{ width: "100%", height: "100%" }} {...card} />
+                    </Skeleton>
                   </Box>
                 ))}
               </Box>
@@ -386,36 +421,52 @@ const FacultyDashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredStudents.length > 0 ? (
+                  {showLoadingStudents ? (
+                    Array(5).fill({}).map((_, index) => (
+                        <Skeleton name="student-table-row" loading={true} key={`skeleton-${index}`}>
+                            <TableRow hover>
+                                <TableCell colSpan={6} align="center" sx={{ py: 3, color: 'text.secondary' }}>Loading...</TableCell>
+                            </TableRow>
+                        </Skeleton>
+                    ))
+                  ) : studentsError ? (
+                    <TableRow>
+                        <TableCell colSpan={6} align="center" sx={{ py: 3, color: 'error.main' }}>
+                            {studentsError}
+                        </TableCell>
+                    </TableRow>
+                  ) : filteredStudents.length > 0 ? (
                     filteredStudents.map((student, index) => (
-                      <TableRow key={student._id} hover>
-                        <TableCell sx={{ fontFamily: "monospace" }}>
-                          {index + 1}
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: "medium" }}>
-                          {student.loginId}
-                        </TableCell>
-                        <TableCell>{student.name}</TableCell>
-                        <TableCell>{student.semester}</TableCell>
-                        <TableCell align="center">
-                          <Typography fontWeight="bold" color="primary">
-                            {student.totalRequests}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={student.status || "Active"}
-                            color={
-                              student.status === "Deactivated"
-                                ? "error"
-                                : "success"
-                            }
-                            size="small"
-                            variant="outlined"
-                            sx={{ fontWeight: "bold" }}
-                          />
-                        </TableCell>
-                      </TableRow>
+                      <Skeleton name="student-table-row" loading={false} key={student._id}>
+                        <TableRow hover>
+                          <TableCell sx={{ fontFamily: "monospace" }}>
+                            {index + 1}
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: "medium" }}>
+                            {student.loginId}
+                          </TableCell>
+                          <TableCell>{student.name}</TableCell>
+                          <TableCell>{student.semester}</TableCell>
+                          <TableCell align="center">
+                            <Typography fontWeight="bold" color="primary">
+                              {student.totalRequests}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={student.status || "Active"}
+                              color={
+                                student.status === "Deactivated"
+                                  ? "error"
+                                  : "success"
+                              }
+                              size="small"
+                              variant="outlined"
+                              sx={{ fontWeight: "bold" }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      </Skeleton>
                     ))
                   ) : (
                     <TableRow>
@@ -524,29 +575,46 @@ const FacultyDashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredCounselees.map((alloc) => (
-                    <TableRow key={alloc._id} hover>
-                      <TableCell sx={{ fontWeight: "medium" }}>
-                        {alloc.studentId?.name}
-                      </TableCell>
-                      <TableCell color="text.secondary">
-                        Sem {alloc.semester}
-                      </TableCell>
-                      <TableCell sx={{ fontFamily: "monospace" }}>
-                        {alloc.studentId?.loginId}
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label="Active"
-                          color="success"
-                          size="small"
-                          variant="outlined"
-                          sx={{ fontWeight: "bold" }}
-                        />
-                      </TableCell>
+                  {showLoadingCounseled ? (
+                    Array(5).fill({}).map((_, index) => (
+                        <Skeleton name="counselee-table-row" loading={true} key={`skeleton-${index}`}>
+                            <TableRow hover>
+                                <TableCell colSpan={4} align="center" sx={{ py: 3, color: 'text.secondary' }}>Loading...</TableCell>
+                            </TableRow>
+                        </Skeleton>
+                    ))
+                  ) : counseledError ? (
+                    <TableRow>
+                        <TableCell colSpan={4} align="center" sx={{ py: 3, color: 'error.main' }}>
+                            {counseledError}
+                        </TableCell>
                     </TableRow>
-                  ))}
-                  {filteredCounselees.length === 0 && (
+                  ) : filteredCounselees.length > 0 ? (
+                    filteredCounselees.map((alloc) => (
+                      <Skeleton name="counselee-table-row" loading={false} key={alloc._id}>
+                        <TableRow hover>
+                          <TableCell sx={{ fontWeight: "medium" }}>
+                            {alloc.studentId?.name}
+                          </TableCell>
+                          <TableCell color="text.secondary">
+                            Sem {alloc.semester}
+                          </TableCell>
+                          <TableCell sx={{ fontFamily: "monospace" }}>
+                            {alloc.studentId?.loginId}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label="Active"
+                              color="success"
+                              size="small"
+                              variant="outlined"
+                              sx={{ fontWeight: "bold" }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      </Skeleton>
+                    ))
+                  ) : (
                     <TableRow>
                       <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
                         <Typography color="text.secondary">
