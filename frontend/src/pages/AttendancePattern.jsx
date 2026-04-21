@@ -53,10 +53,10 @@ const AttendancePattern = () => {
 
             <Paper sx={{ p: 3, bgcolor: '#1e1e1e', color: 'white', mb: 4, borderRadius: 2 }}>
                 <Grid container spacing={2} sx={{ mb: 4 }} alignItems="center" justifyContent="space-between">
-                    <Grid item>
+                    <Grid size={{ xs: 'auto' }}>
                         <Typography variant="h6">Day-wise Absence Pattern (%)</Typography>
                     </Grid>
-                    <Grid item>
+                    <Grid size={{ xs: 'auto' }}>
                         <Box sx={{ display: 'flex', gap: 2 }}>
                             <FormControl size="small" sx={{ minWidth: 150 }}>
                                 <InputLabel sx={{ color: '#bbb' }}>Semester</InputLabel>

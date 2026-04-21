@@ -77,7 +77,7 @@ const AnalyticsReports = () => {
             <Grid container spacing={3}>
                 
                 {/* Request Overview Card */}
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Paper 
                         onClick={() => navigate('/admin/analytics/requests')}
                         sx={{ 
@@ -108,7 +108,7 @@ const AnalyticsReports = () => {
                 </Grid>
 
                 {/* Attendance Overview Card */}
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Paper 
                         onClick={() => navigate('/admin/analytics/attendance')}
                         sx={{ 
@@ -139,7 +139,7 @@ const AnalyticsReports = () => {
                 </Grid>
 
                 {/* Attendance Pattern Card */}
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <Paper 
                         onClick={() => navigate('/admin/analytics/pattern')}
                         sx={{ 

@@ -83,7 +83,7 @@ const FacultyAssessments = () => {
 
     return (
         <Layout role="Faculty" activeTab="assessments">
-            <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 4 }, animation: 'fadeInUp 0.5s ease-out' }}>
+            <Box sx={{ width: '100%', p: { xs: 2, md: 4 }, animation: 'fadeInUp 0.5s ease-out' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
                     <Box>
                         <Typography variant="h4" fontWeight="bold" display="flex" alignItems="center" gap={1.5} mb={1}>
@@ -118,7 +118,7 @@ const FacultyAssessments = () => {
                 ) : (
                     <Grid container spacing={3}>
                         {assessments.map((item) => (
-                            <Grid item xs={12} key={item._id}>
+                            <Grid size={{ xs: 12 }} key={item._id}>
                                 <Card sx={{ 
                                     borderRadius: 3, 
                                     boxShadow: 2, 

@@ -194,7 +194,7 @@ const Assignments = () => {
     // RENDERS
     return (
         <Layout role={role}>
-            <Box sx={{ maxWidth: 1200, mx: 'auto', animation: 'fadeIn 0.5s ease-out' }}>
+            <Box sx={{ width: '100%', animation: 'fadeIn 0.5s ease-out' }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
                     <Box display="flex" alignItems="center" gap={2}>
                         <BookOpen size={32} color="#1976d2" />

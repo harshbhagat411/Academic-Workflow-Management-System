@@ -108,7 +108,7 @@ const Settings = () => {
                 
                 <Grid container spacing={4}>
                     {/* Account Settings */}
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <Card sx={{ borderRadius: 3, boxShadow: 3, height: '100%' }}>
                             <CardContent sx={{ p: 4 }}>
                                 <Box display="flex" alignItems="center" gap={1.5} mb={3}>
@@ -180,10 +180,10 @@ const Settings = () => {
                     </Grid>
                     
                     {/* Preferences */}
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <Grid container spacing={4} direction="column">
                             {/* Appearance */}
-                            <Grid item>
+                            <Grid size={{ xs: 'auto' }}>
                                 <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
                                     <CardContent sx={{ p: 4 }}>
                                         <Box display="flex" alignItems="center" gap={1.5} mb={3}>
@@ -214,7 +214,7 @@ const Settings = () => {
                             </Grid>
                             
                             {/* Notifications */}
-                            <Grid item>
+                            <Grid size={{ xs: 'auto' }}>
                                 <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
                                     <CardContent sx={{ p: 4 }}>
                                         <Box display="flex" alignItems="center" gap={1.5} mb={3}>
@@ -241,7 +241,7 @@ const Settings = () => {
                     
                     {/* Admin Area */}
                     {role === 'Admin' && (
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Card sx={{ borderRadius: 3, boxShadow: 3, border: '2px solid', borderColor: 'error.main' }}>
                                 <CardContent sx={{ p: 4 }}>
                                     <Box display="flex" alignItems="center" gap={1.5} mb={3}>
@@ -251,7 +251,7 @@ const Settings = () => {
                                     <Divider sx={{ mb: 3 }} />
                                     
                                     <Grid container spacing={4}>
-                                        <Grid item xs={12} md={6}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
                                             <Typography variant="subtitle2" fontWeight="bold" mb={2}>System Rules</Typography>
                                             <Box display="flex" flexDirection="column" gap={2}>
                                                 <TextField 
@@ -268,7 +268,7 @@ const Settings = () => {
                                                 />
                                             </Box>
                                         </Grid>
-                                        <Grid item xs={12} md={6}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
                                             <Typography variant="subtitle2" fontWeight="bold" mb={2}>Admin Notification Rules</Typography>
                                             <Box display="flex" flexDirection="column" gap={1}>
                                                 <FormControlLabel

@@ -423,11 +423,9 @@ const FacultyDashboard = () => {
                 <TableBody>
                   {showLoadingStudents ? (
                     Array(5).fill({}).map((_, index) => (
-                        <Skeleton name="student-table-row" loading={true} key={`skeleton-${index}`}>
-                            <TableRow hover>
-                                <TableCell colSpan={6} align="center" sx={{ py: 3, color: 'text.secondary' }}>Loading...</TableCell>
-                            </TableRow>
-                        </Skeleton>
+                        <TableRow hover key={`skeleton-${index}`}>
+                            <TableCell colSpan={6} align="center" sx={{ py: 3, color: 'text.secondary' }}>Loading...</TableCell>
+                        </TableRow>
                     ))
                   ) : studentsError ? (
                     <TableRow>
@@ -437,8 +435,7 @@ const FacultyDashboard = () => {
                     </TableRow>
                   ) : filteredStudents.length > 0 ? (
                     filteredStudents.map((student, index) => (
-                      <Skeleton name="student-table-row" loading={false} key={student._id}>
-                        <TableRow hover>
+                        <TableRow hover key={student._id}>
                           <TableCell sx={{ fontFamily: "monospace" }}>
                             {index + 1}
                           </TableCell>
@@ -466,7 +463,6 @@ const FacultyDashboard = () => {
                             />
                           </TableCell>
                         </TableRow>
-                      </Skeleton>
                     ))
                   ) : (
                     <TableRow>
@@ -577,11 +573,9 @@ const FacultyDashboard = () => {
                 <TableBody>
                   {showLoadingCounseled ? (
                     Array(5).fill({}).map((_, index) => (
-                        <Skeleton name="counselee-table-row" loading={true} key={`skeleton-${index}`}>
-                            <TableRow hover>
-                                <TableCell colSpan={4} align="center" sx={{ py: 3, color: 'text.secondary' }}>Loading...</TableCell>
-                            </TableRow>
-                        </Skeleton>
+                        <TableRow hover key={`skeleton-${index}`}>
+                            <TableCell colSpan={4} align="center" sx={{ py: 3, color: 'text.secondary' }}>Loading...</TableCell>
+                        </TableRow>
                     ))
                   ) : counseledError ? (
                     <TableRow>
@@ -591,8 +585,7 @@ const FacultyDashboard = () => {
                     </TableRow>
                   ) : filteredCounselees.length > 0 ? (
                     filteredCounselees.map((alloc) => (
-                      <Skeleton name="counselee-table-row" loading={false} key={alloc._id}>
-                        <TableRow hover>
+                        <TableRow hover key={alloc._id}>
                           <TableCell sx={{ fontWeight: "medium" }}>
                             {alloc.studentId?.name}
                           </TableCell>
@@ -612,7 +605,6 @@ const FacultyDashboard = () => {
                             />
                           </TableCell>
                         </TableRow>
-                      </Skeleton>
                     ))
                   ) : (
                     <TableRow>

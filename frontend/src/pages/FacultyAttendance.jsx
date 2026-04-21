@@ -228,7 +228,7 @@ const FacultyAttendance = () => {
 
     return (
         <Layout role="Faculty" activeTab="attendance">
-            <Box sx={{ maxWidth: 1200, mx: 'auto', animation: 'fadeInUp 0.5s ease-out' }}>
+            <Box sx={{ width: '100%', animation: 'fadeInUp 0.5s ease-out' }}>
                 <Box sx={{ mb: 4, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between', gap: 2 }}>
                     <Box>
                         <Typography variant="h4" fontWeight="bold" display="flex" alignItems="center" gap={1.5} mb={1}>
@@ -273,7 +273,7 @@ const FacultyAttendance = () => {
                 ) : (
                     <Grid container spacing={3}>
                         {schedule.map((item, idx) => (
-                            <Grid item xs={12} md={6} lg={4} key={idx}>
+                            <Grid size={{ xs: 12, md: 6, lg: 4 }} key={idx}>
                                 <Card sx={{ 
                                     borderRadius: 3, 
                                     boxShadow: item.status === 'Ongoing' ? 4 : 1, 

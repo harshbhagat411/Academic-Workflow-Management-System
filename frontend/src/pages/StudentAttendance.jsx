@@ -66,7 +66,7 @@ const StudentAttendance = () => {
 
     return (
         <Layout role="Student" activeTab="attendance">
-            <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 4 }, animation: 'fadeInUp 0.5s ease-out' }}>
+            <Box sx={{ width: '100%', p: { xs: 2, md: 4 }, animation: 'fadeInUp 0.5s ease-out' }}>
                 <Typography variant="h4" fontWeight="bold" display="flex" alignItems="center" gap={2} mb={4}>
                     <Box component="span" sx={{ p: 1, bgcolor: 'primary.50', borderRadius: 2, display: 'flex' }}>
                         <BookOpen size={28} className="text-primary-600" />
@@ -85,7 +85,7 @@ const StudentAttendance = () => {
                 <Grid container spacing={4} sx={{ mb: 4 }}>
                     {showLoading ? (
                         Array(6).fill({ subjectName: 'Loading Subject Name...', subjectCode: 'CODE101', percentage: 0, attendedLectures: 0, totalLectures: 0 }).map((item, index) => (
-                            <Grid item xs={12} sm={6} md={4} key={`skeleton-${index}`}>
+                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={`skeleton-${index}`}>
                                 <Skeleton name="attendance-card" loading={true}>
                                     <Card 
                                         sx={{ 
@@ -128,14 +128,14 @@ const StudentAttendance = () => {
                             </Grid>
                         ))
                     ) : summary.length === 0 ? (
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Typography color="text.secondary" textAlign="center" mt={5}>
                                 No attendance records found.
                             </Typography>
                         </Grid>
                     ) : (
                         summary.map((item, index) => (
-                            <Grid item xs={12} sm={6} md={4} key={index}>
+                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
                               <Skeleton name="attendance-card" loading={false}>
                                 <Card 
                                     sx={{ 

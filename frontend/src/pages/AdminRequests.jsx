@@ -84,7 +84,7 @@ const AdminRequests = () => {
 
     return (
         <Layout role="Admin">
-            <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, mx: 'auto', animation: 'fadeInUp 0.5s ease-out' }}>
+            <Box sx={{ p: { xs: 2, md: 4 }, width: '100%', animation: 'fadeInUp 0.5s ease-out' }}>
                 <Typography variant="h4" fontWeight="bold" mb={4}>
                 Manage Academic Requests
             </Typography>

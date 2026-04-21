@@ -106,11 +106,9 @@ const UserTable = ({ data, loading, error, type, searchTerm, setSearchTerm, seme
                     <TableBody>
                         {showLoading ? (
                             Array(5).fill({}).map((_, index) => (
-                                <Skeleton name="table-row-skeleton" loading={true} key={`skeleton-${index}`}>
-                                    <TableRow hover>
-                                        <TableCell colSpan={type === 'Faculty' ? 7 : 8} align="center" sx={{ py: 3, color: 'text.secondary' }}>Loading...</TableCell>
-                                    </TableRow>
-                                </Skeleton>
+                                <TableRow hover key={`skeleton-${index}`}>
+                                    <TableCell colSpan={type === 'Faculty' ? 7 : 8} align="center" sx={{ py: 3, color: 'text.secondary' }}>Loading...</TableCell>
+                                </TableRow>
                             ))
                         ) : error ? (
                             <TableRow>
@@ -126,8 +124,7 @@ const UserTable = ({ data, loading, error, type, searchTerm, setSearchTerm, seme
                             </TableRow>
                         ) : (
                             filteredData.map((user, index) => (
-                                <Skeleton name="table-row-skeleton" loading={false} key={user._id}>
-                                <TableRow hover>
+                                <TableRow hover key={user._id}>
                                     <TableCell sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>{data.indexOf(user) + 1}</TableCell>
                                     <TableCell sx={{ fontWeight: 500 }}>{user.name}</TableCell>
                                     <TableCell sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>{user.loginId}</TableCell>
@@ -159,7 +156,6 @@ const UserTable = ({ data, loading, error, type, searchTerm, setSearchTerm, seme
                                         </MuiButton>
                                     </TableCell>
                                 </TableRow>
-                                </Skeleton>
                             ))
                         )}
                     </TableBody>
@@ -1583,14 +1579,14 @@ const AdminDashboard = () => {
 
                         <Grid container spacing={3}>
                             {sections.length === 0 ? (
-                                <Grid item xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <Typography color="text.secondary" align="center" sx={{ py: 6 }}>
                                         {semesterFilter ? 'No sections found. Sections are auto-created when students are added.' : 'Select a semester to view sections.'}
                                     </Typography>
                                 </Grid>
                             ) : (
                                 sections.map(section => (
-                                    <Grid item xs={12} md={6} lg={4} key={section._id}>
+                                    <Grid size={{ xs: 12, md: 6, lg: 4 }} key={section._id}>
                                         <Card variant="outlined" sx={{ borderRadius: 2, transition: 'all 0.3s', '&:hover': { borderColor: 'primary.main', boxShadow: 2 } }}>
                                             <CardContent>
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -1691,7 +1687,7 @@ const AdminDashboard = () => {
 
                                 <Grid container spacing={4} sx={{ flex: 1, overflow: 'hidden' }}>
                                     {/* Left: Unassigned Students */}
-                                    <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                    <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                                         <Paper variant="outlined" sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2, bgcolor: 'background.default' }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                                 <Typography variant="subtitle1" fontWeight="bold">Unassigned (Sem {semesterFilter})</Typography>
@@ -1750,7 +1746,7 @@ const AdminDashboard = () => {
                                     </Grid>
 
                                     {/* Right: Target Section */}
-                                    <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3 }}>
+                                    <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3 }}>
                                         <Box>
                                             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Target Section</Typography>
                                             <FormControl fullWidth>

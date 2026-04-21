@@ -117,7 +117,7 @@ const CreateUser = () => {
                     
                     <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                         <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField
                                     label="Full Name"
                                     name="name"
@@ -127,7 +127,7 @@ const CreateUser = () => {
                                     fullWidth
                                 />
                             </Grid>
-                            <Grid item xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField
                                     label="Phone"
                                     name="phone"
@@ -162,7 +162,7 @@ const CreateUser = () => {
                         />
 
                         <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField
                                     select
                                     label="Gender"
@@ -176,7 +176,7 @@ const CreateUser = () => {
                                     <MenuItem value="Other">Other</MenuItem>
                                 </TextField>
                             </Grid>
-                            <Grid item xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField
                                     select
                                     label="Role"

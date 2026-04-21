@@ -122,7 +122,7 @@ const FacultyRequests = () => {
 
     return (
         <Layout role="Faculty" activeTab="requests">
-            <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 4 }, animation: 'fadeInUp 0.5s ease-out' }}>
+            <Box sx={{ width: '100%', p: { xs: 2, md: 4 }, animation: 'fadeInUp 0.5s ease-out' }}>
                 <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Typography variant="h4" fontWeight="bold" display="flex" alignItems="center" gap={1.5}>
                         <FileText color="#2196f3" size={32} />

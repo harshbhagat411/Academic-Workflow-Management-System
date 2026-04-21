@@ -130,7 +130,7 @@ const StudentDashboard = () => {
 
     return (
         <Layout role="Student" activeTab="dashboard">
-            <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 }, animation: 'fadeInUp 0.5s ease-out' }}>
+            <Box sx={{ width: '100%', p: { xs: 2, md: 3 }, animation: 'fadeInUp 0.5s ease-out' }}>
                 <Box sx={{ textAlign: 'center', mb: 4 }}>
                     <Typography variant="h4" fontWeight="bold" color="text.primary" gutterBottom>
                         {greeting}, <Typography component="span" variant="h4" color="primary.main" fontWeight="bold">{user?.name || 'Student'}</Typography>
@@ -199,18 +199,18 @@ const StudentDashboard = () => {
                                 </Box>
                                 <Box sx={{ p: 4 }}>
                                     <Grid container spacing={4}>
-                                        <Grid item xs={12} md={4}>
+                                        <Grid size={{ xs: 12, md: 4 }}>
                                             <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1}>Faculty Name</Typography>
                                             <Typography variant="h6" fontWeight="medium" mt={0.5}>{counselor?.facultyId?.name || 'Loading...'}</Typography>
                                         </Grid>
-                                        <Grid item xs={12} md={4}>
+                                        <Grid size={{ xs: 12, md: 4 }}>
                                             <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1}>Contact Email</Typography>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                                                 <Mail size={16} className="text-gray-400" />
                                                 <Typography variant="h6" fontWeight="medium">{counselor?.facultyId?.email || 'Loading...'}</Typography>
                                             </Box>
                                         </Grid>
-                                        <Grid item xs={12} md={4}>
+                                        <Grid size={{ xs: 12, md: 4 }}>
                                             <Typography variant="caption" color="text.secondary" fontWeight="bold" textTransform="uppercase" letterSpacing={1}>Department</Typography>
                                             <Typography variant="h6" fontWeight="medium" mt={0.5}>{counselor?.department || 'Loading...'}</Typography>
                                         </Grid>
@@ -235,7 +235,7 @@ const StudentDashboard = () => {
 
                         {/* Quick Link Buttons (replaces text links) */}
                         <Grid container spacing={2} justifyContent="center" sx={{ mb: 4 }}>
-                            <Grid item>
+                            <Grid size={{ xs: 'auto' }}>
                                 <Button 
                                     variant="outlined" 
                                     component={Link} 
@@ -246,7 +246,7 @@ const StudentDashboard = () => {
                                     Academic Requests
                                 </Button>
                             </Grid>
-                            <Grid item>
+                            <Grid size={{ xs: 'auto' }}>
                                 <Button 
                                     variant="outlined" 
                                     component={Link} 
@@ -257,7 +257,7 @@ const StudentDashboard = () => {
                                     My Attendance
                                 </Button>
                             </Grid>
-                            <Grid item>
+                            <Grid size={{ xs: 'auto' }}>
                                 <Button 
                                     variant="outlined" 
                                     component={Link} 
