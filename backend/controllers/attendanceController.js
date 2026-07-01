@@ -287,6 +287,31 @@ exports.getAdminAttendanceAnalytics = async (req, res) => {
                                 }
                             }
                         }
+                    ],
+                    bySemester: [
+                        {
+                            $group: {
+                                _id: '$subjectDetails.semester',
+                                totalRecords: { $sum: 1 },
+                                presentRecords: {
+                                    $sum: { $cond: [{ $eq: ['$records.status', 'Present'] }, 1, 0] }
+                                }
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                semester: '$_id',
+                                attendancePercentage: {
+                                    $cond: [
+                                        { $gt: ['$totalRecords', 0] },
+                                        { $round: [{ $multiply: [{ $divide: ['$presentRecords', '$totalRecords'] }, 100] }, 2] },
+                                        0
+                                    ]
+                                }
+                            }
+                        },
+                        { $sort: { semester: 1 } }
                     ]
                 }
             }
@@ -295,6 +320,49 @@ exports.getAdminAttendanceAnalytics = async (req, res) => {
         const results = attendanceStats[0] || {};
         const attendanceOverview = results.bySubject || [];
         
+        let recordMatch = {};
+        if (semester && semester !== 'all') {
+            recordMatch['studentDetails.semester'] = Number(semester);
+        }
+
+        const studentStats = await AttendanceRecord.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'studentId',
+                    foreignField: '_id',
+                    as: 'studentDetails'
+                }
+            },
+            { $unwind: '$studentDetails' },
+            { 
+                $match: { 
+                    'studentDetails.role': 'Student', 
+                    'studentDetails.status': 'Active',
+                    ...recordMatch
+                } 
+            },
+            {
+                $group: {
+                    _id: '$studentId',
+                    total: { $sum: 1 },
+                    present: { $sum: { $cond: [{ $eq: ['$status', 'Present'] }, 1, 0] } }
+                }
+            },
+            {
+                $project: {
+                    percentage: {
+                        $cond: [
+                            { $gt: ['$total', 0] },
+                            { $multiply: [{ $divide: ['$present', '$total'] }, 100] },
+                            0
+                        ]
+                    }
+                }
+            }
+        ]);
+        const defaulterCount = studentStats.filter(s => s.percentage < 75).length;
+
         const dayMap = {
             1: 'Sunday', 2: 'Monday', 3: 'Tuesday', 4: 'Wednesday', 5: 'Thursday', 6: 'Friday', 7: 'Saturday'
         };
@@ -324,7 +392,9 @@ exports.getAdminAttendanceAnalytics = async (req, res) => {
 
         res.json({
             attendanceOverview,
-            attendancePattern
+            attendancePattern,
+            attendanceBySemester: results.bySemester || [],
+            defaulterCount
         });
     } catch (error) {
         console.error('Analytics Fetch Error:', error);
