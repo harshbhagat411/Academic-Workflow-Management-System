@@ -8,19 +8,21 @@ const requestSchema = new mongoose.Schema({
             'Bonafide Certificate', 'Leave Application', 'Internship Approval', 'Project Topic Approval', 
             'Section Change', 'Subject Change', 'Timetable Clash', 'Lab Batch Change',
             'Attendance Correction Request', 'Re-evaluation Request', 'ID Card Replacement',
-            'Subject Change Request', 'Project Supervisor Change Request', 'Project Extension Request'
+            'Subject Change Request', 'Submission Extension Request'
         ],
         required: true
     },
+    subjectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject' },
     description: { type: String, required: true },
     startDate: { type: Date }, // Phase 15: Structured Leave
     endDate: { type: Date },   // Phase 15: Structured Leave
     department: { type: String, required: true }, // Phase 8: Department Awareness
     status: {
         type: String,
-        enum: ['Submitted', 'Faculty Approved', 'Approved', 'Rejected'],
+        enum: ['Submitted', 'Faculty Approved', 'Approved', 'Rejected', 'PENDING_ADMIN_APPROVAL', 'APPROVED', 'REJECTED', 'SUBMITTED'],
         default: 'Submitted'
     },
+    completedAt: { type: Date },
     isArchived: { type: Boolean, default: false },
     archivedAt: { type: Date, default: null },
     facultyRemarks: { type: String },

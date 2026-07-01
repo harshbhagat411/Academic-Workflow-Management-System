@@ -28,25 +28,7 @@ const validateRequest = (student, requestPayload) => {
         }
     }
     
-    // Project Supervisor Change Request (Semester >= 4)
-    if (requestType === 'Project Supervisor Change Request') {
-        if (semester < 4) {
-            return {
-                isAllowed: false,
-                message: 'Project Supervisor Change Requests are allowed only from Semester 4 onwards.'
-            };
-        }
-    }
 
-    // Project Extension Request (Semester >= 4)
-    if (requestType === 'Project Extension Request') {
-        if (semester < 4) {
-            return {
-                isAllowed: false,
-                message: 'Project Extension Requests are allowed only from Semester 4 onwards.'
-            };
-        }
-    }
 
     // Subject Change Request (Semester >= 3)
     if (requestType === 'Subject Change Request') {

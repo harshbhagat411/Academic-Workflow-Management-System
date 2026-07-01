@@ -6,6 +6,37 @@ const Notification = require('../models/Notification');
 const { v4: uuidv4 } = require('uuid');
 const { validateRequest } = require('../utils/ruleEngine');
 const { sendEmail } = require('../utils/emailService');
+const { REQUEST_WORKFLOW_CONFIG } = require('../config/workflowConfig');
+
+const mapRequestForFrontend = (request) => {
+    if (!request) return request;
+    const reqObj = request.toObject ? request.toObject() : request;
+    if (reqObj.status === 'PENDING_ADMIN_APPROVAL') {
+        reqObj.status = 'Faculty Approved';
+    } else if (reqObj.status === 'APPROVED') {
+        reqObj.status = 'Approved';
+    } else if (reqObj.status === 'REJECTED') {
+        reqObj.status = 'Rejected';
+    } else if (reqObj.status === 'SUBMITTED') {
+        reqObj.status = 'Submitted';
+    }
+    return reqObj;
+};
+
+const mapAuditForFrontend = (audit) => {
+    if (!audit) return audit;
+    const auditObj = audit.toObject ? audit.toObject() : audit;
+    if (auditObj.action === 'PENDING_ADMIN_APPROVAL') {
+        auditObj.action = 'Faculty Approved';
+    } else if (auditObj.action === 'APPROVED') {
+        auditObj.action = 'Approved';
+    } else if (auditObj.action === 'REJECTED') {
+        auditObj.action = 'Rejected';
+    } else if (auditObj.action === 'SUBMITTED') {
+        auditObj.action = 'Submitted';
+    }
+    return auditObj;
+};
 
 // SLA Constants
 const FACULTY_SLA_DAYS = 3;
@@ -53,11 +84,31 @@ exports.createRequest = async (req, res) => {
         // Force department mapping to fix General student data
         const requestDepartment = (student.department === 'General' || !student.department) ? 'Computer Science' : student.department;
 
-        // Resolve Assigned Faculty (Mentor)
-        const allocation = await MentorAllocation.findOne({ studentId: student._id });
+        // Resolve Assigned Faculty based on Centralized Workflow Config
         let resolvedFacultyId = null;
-        if (allocation && allocation.mentorId) {
-            resolvedFacultyId = allocation.mentorId;
+        let resolvedSubjectId = null;
+        const config = REQUEST_WORKFLOW_CONFIG[requestType] || { finalApprover: 'ADMIN' };
+
+        if (config.finalApprover === 'FACULTY') {
+            const { subjectId } = req.body;
+            if (!subjectId) {
+                return res.status(400).json({ message: 'Subject selection is required for this request type.' });
+            }
+            const Subject = require('../models/Subject');
+            const subjectObj = await Subject.findById(subjectId);
+            if (!subjectObj) {
+                return res.status(400).json({ message: 'Selected subject not found.' });
+            }
+            if (!subjectObj.facultyId) {
+                return res.status(400).json({ message: 'No faculty assigned to the selected subject.' });
+            }
+            resolvedFacultyId = subjectObj.facultyId;
+            resolvedSubjectId = subjectObj._id;
+        } else {
+            const allocation = await MentorAllocation.findOne({ studentId: student._id, isActive: true, semester: student.semester });
+            if (allocation) {
+                resolvedFacultyId = allocation.facultyId;
+            }
         }
 
         const newRequest = new Request({
@@ -69,6 +120,7 @@ exports.createRequest = async (req, res) => {
             studentId,
             department: requestDepartment,
             facultyId: resolvedFacultyId,
+            subjectId: resolvedSubjectId,
             facultyActionDueAt: facultyDue
         });
 
@@ -139,7 +191,7 @@ exports.createRequest = async (req, res) => {
             console.error('Notification error:', notifErr);
         }
 
-        res.status(201).json({ message: 'Request submitted successfully', request: newRequest });
+        res.status(201).json({ message: 'Request submitted successfully', request: mapRequestForFrontend(newRequest) });
     } catch (error) {
         console.error('Error creating request:', error);
         res.status(500).json({ message: 'Server error' });
@@ -158,7 +210,7 @@ exports.getMyRequests = async (req, res) => {
             isArchived: isArchived
         }).sort({ createdAt: -1 });
 
-        res.status(200).json(requests);
+        res.status(200).json(requests.map(r => mapRequestForFrontend(r)));
     } catch (error) {
         console.error('Error fetching requests:', error);
         res.status(500).json({ message: 'Server error' });
@@ -183,7 +235,7 @@ exports.getAllRequests = async (req, res) => {
         if (!isArchived) {
             // ONLY actionable requests
             query.isArchived = false;
-            query.status = 'Submitted';
+            query.status = { $in: ['Submitted', 'SUBMITTED'] };
         } else {
             // 🚫 Faculty should NOT see archive here
             // Archive is handled by getFacultyReviewedRequests
@@ -194,7 +246,7 @@ exports.getAllRequests = async (req, res) => {
             .populate('studentId', 'name loginId')
             .sort({ createdAt: -1 });
 
-        res.status(200).json(requests);
+        res.status(200).json(requests.map(r => mapRequestForFrontend(r)));
     } catch (error) {
         console.error('Error fetching faculty requests:', error);
         res.status(500).json({ message: 'Server error' });
@@ -226,28 +278,38 @@ exports.updateRequestStatus = async (req, res) => {
             request.delayReason = 'FACULTY_DELAY';
         }
 
-        request.status = status;
-        request.facultyRemarks = remarks;
-        request.facultyActionDate = now;
+        const config = REQUEST_WORKFLOW_CONFIG[request.requestType] || { finalApprover: 'ADMIN' };
 
-        // SLA: If Approved, set Admin Due Date
+        let finalStatus = status;
+        let auditAction = status;
+
         if (status === 'Faculty Approved') {
-            const adminDue = new Date();
-            adminDue.setDate(adminDue.getDate() + ADMIN_SLA_DAYS);
-            request.adminActionDueAt = adminDue;
+            if (config.finalApprover === 'ADMIN') {
+                finalStatus = 'PENDING_ADMIN_APPROVAL';
+                auditAction = 'PENDING_ADMIN_APPROVAL';
+                const adminDue = new Date();
+                adminDue.setDate(adminDue.getDate() + ADMIN_SLA_DAYS);
+                request.adminActionDueAt = adminDue;
+            } else {
+                finalStatus = 'APPROVED';
+                auditAction = 'APPROVED';
+                request.completedAt = now;
+                request.isArchived = true;
+                request.archivedAt = now;
+            }
         } else if (status === 'Rejected') {
-            // Auto-Archive if Faculty Rejects
+            finalStatus = 'REJECTED';
+            auditAction = 'REJECTED';
+            request.completedAt = now;
             request.isArchived = true;
             request.archivedAt = now;
         }
 
-        await request.save();
+        request.status = finalStatus;
+        request.facultyRemarks = remarks;
+        request.facultyActionDate = now;
 
-        // AUDIT LOG: Faculty Action
-        let auditAction = status;
-        if (status === 'Rejected') {
-            auditAction = 'Faculty Rejected';
-        }
+        await request.save();
 
         const auditLog = new RequestAudit({
             auditId: `AUD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -287,7 +349,7 @@ exports.updateRequestStatus = async (req, res) => {
             console.error('Notification error:', notifErr);
         }
 
-        res.status(200).json({ message: 'Request updated successfully', request });
+        res.status(200).json({ message: 'Request updated successfully', request: mapRequestForFrontend(request) });
     } catch (error) {
         console.error('Error updating request:', error);
         res.status(500).json({ message: 'Server error' });
@@ -306,15 +368,21 @@ exports.getAdminRequests = async (req, res) => {
             query.isArchived = true;
         } else {
             query.isArchived = false;
-            // Active for Admin = Faculty Approved (Pending Admin Action)
-            query.status = 'Faculty Approved';
+            // Active for Admin = PENDING_ADMIN_APPROVAL or legacy Faculty Approved
+            query.status = { $in: ['PENDING_ADMIN_APPROVAL', 'Faculty Approved'] };
+
+            // Only query types requiring Admin final approval
+            const adminRequiredTypes = Object.keys(REQUEST_WORKFLOW_CONFIG).filter(
+                type => REQUEST_WORKFLOW_CONFIG[type].finalApprover === 'ADMIN'
+            );
+            query.requestType = { $in: adminRequiredTypes };
         }
 
         const requests = await Request.find(query)
             .populate('studentId', 'name loginId department')
             .sort({ createdAt: -1 });
 
-        res.status(200).json(requests);
+        res.status(200).json(requests.map(r => mapRequestForFrontend(r)));
     } catch (error) {
         console.error('Error fetching admin requests:', error);
         res.status(500).json({ message: 'Server error' });
@@ -361,11 +429,20 @@ exports.updateAdminRequestStatus = async (req, res) => {
             request.delayReason = 'ADMIN_DELAY';
         }
 
-        request.status = status;
+        let finalStatus = 'APPROVED';
+        let auditAction = 'APPROVED';
+
+        if (status === 'Rejected') {
+            finalStatus = 'REJECTED';
+            auditAction = 'REJECTED';
+        }
+
+        request.status = finalStatus;
         request.adminRemarks = remarks;
         request.adminActionDate = now;
+        request.completedAt = now;
 
-        // Phase 13: Auto-Archive on Admin Decision
+        // Auto-Archive on Admin Decision
         request.isArchived = true;
         request.archivedAt = now;
 
@@ -377,12 +454,12 @@ exports.updateAdminRequestStatus = async (req, res) => {
             requestId: id,
             performedBy: adminId,
             role: 'Admin',
-            action: status,
+            action: auditAction,
             remarks: remarks
         });
         await auditLog.save();
 
-        res.status(200).json({ message: 'Request updated successfully', request });
+        res.status(200).json({ message: 'Request updated successfully', request: mapRequestForFrontend(request) });
     } catch (error) {
         console.error('Error updating request by admin:', error);
         res.status(500).json({ message: 'Server error' });
@@ -402,9 +479,9 @@ exports.getRequestStats = async (req, res) => {
 
         const [total, approved, rejected, pending] = await Promise.all([
             Request.countDocuments(matchStage),
-            Request.countDocuments({ ...matchStage, status: 'Approved' }),
-            Request.countDocuments({ ...matchStage, status: 'Rejected' }),
-            Request.countDocuments({ ...matchStage, status: { $nin: ['Approved', 'Rejected'] } })
+            Request.countDocuments({ ...matchStage, status: { $in: ['Approved', 'APPROVED'] } }),
+            Request.countDocuments({ ...matchStage, status: { $in: ['Rejected', 'REJECTED'] } }),
+            Request.countDocuments({ ...matchStage, status: { $nin: ['Approved', 'APPROVED', 'Rejected', 'REJECTED'] } })
         ]);
 
         res.status(200).json({
@@ -484,7 +561,7 @@ exports.getRequestAudit = async (req, res) => {
             }
         }
 
-        res.status(200).json(audits);
+        res.status(200).json(audits.map(a => mapAuditForFrontend(a)));
     } catch (error) {
         console.error('Error fetching audit trail:', error);
         res.status(500).json({ message: 'Server error' });
@@ -500,7 +577,7 @@ exports.getFacultyReviewedRequests = async (req, res) => {
         const audits = await RequestAudit.find({
             performedBy: facultyId,
             role: 'Faculty',
-            action: { $in: ['Faculty Approved', 'Faculty Rejected'] }
+            action: { $in: ['Faculty Approved', 'Faculty Rejected', 'Approved', 'Rejected', 'PENDING_ADMIN_APPROVAL', 'APPROVED', 'REJECTED'] }
         }).sort({ actionDate: -1 });
 
         if (audits.length === 0) {
@@ -530,10 +607,10 @@ exports.getFacultyReviewedRequests = async (req, res) => {
             return {
                 _id: audit._id,
                 auditId: audit.auditId,
-                action: audit.action,
+                action: audit.action === 'PENDING_ADMIN_APPROVAL' ? 'Faculty Approved' : (audit.action === 'APPROVED' ? 'Approved' : (audit.action === 'REJECTED' ? 'Rejected' : audit.action)),
                 remarks: audit.remarks,
                 actionDate: audit.actionDate,
-                requestDetails: reqDetails
+                requestDetails: mapRequestForFrontend(reqDetails)
             };
         }).filter(item => item !== null);
 
@@ -553,7 +630,7 @@ exports.getAdminRequestHistory = async (req, res) => {
             .populate('studentId', 'name loginId')
             .sort({ createdAt: -1 });
 
-        res.status(200).json(requests);
+        res.status(200).json(requests.map(r => mapRequestForFrontend(r)));
     } catch (error) {
         console.error('Error fetching admin history:', error);
         res.status(500).json({ message: 'Server error' });

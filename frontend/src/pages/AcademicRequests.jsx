@@ -21,6 +21,8 @@ const AcademicRequests = () => {
     const [studentSemester, setStudentSemester] = useState(1);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [subjects, setSubjects] = useState([]);
+    const [subjectId, setSubjectId] = useState('');
 
     const fetchRequests = async () => {
         try {
@@ -35,6 +37,18 @@ const AcademicRequests = () => {
         }
     };
 
+    const fetchStudentSubjects = async (sem) => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`http://localhost:5000/api/subjects/student/list?semester=${sem}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setSubjects(res.data);
+        } catch (err) {
+            console.error('Error fetching student subjects:', err);
+        }
+    };
+
     const fetchStudentProfile = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -42,7 +56,9 @@ const AcademicRequests = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.data && res.data.semester) {
-                setStudentSemester(parseInt(res.data.semester, 10));
+                const sem = parseInt(res.data.semester, 10);
+                setStudentSemester(sem);
+                fetchStudentSubjects(sem);
             }
         } catch (err) {
             console.error('Error fetching user profile:', err);
@@ -76,6 +92,10 @@ const AcademicRequests = () => {
                 payload.endDate = endDate;
             }
 
+            if (['Re-evaluation Request', 'Project Topic Approval', 'Submission Extension Request'].includes(requestType)) {
+                payload.subjectId = subjectId;
+            }
+
             await axios.post('http://localhost:5000/api/requests/create',
                 payload,
                 { headers: { Authorization: `Bearer ${token}` } }
@@ -85,6 +105,7 @@ const AcademicRequests = () => {
             setDescription('');
             setStartDate('');
             setEndDate('');
+            setSubjectId('');
             fetchRequests();
             if (activeTab !== 0) setActiveTab(0);
         } catch (err) {
@@ -99,12 +120,11 @@ const AcademicRequests = () => {
             { name: 'Leave Application', minSemester: 1 },
             { name: 'Attendance Correction Request', minSemester: 1 },
             { name: 'Re-evaluation Request', minSemester: 1 },
+            { name: 'Submission Extension Request', minSemester: 1 },
             { name: 'ID Card Replacement', minSemester: 1 },
             { name: 'Subject Change Request', minSemester: 3 },
             { name: 'Internship Approval', minSemester: 4 },
-            { name: 'Project Topic Approval', minSemester: 4 },
-            { name: 'Project Supervisor Change Request', minSemester: 4 },
-            { name: 'Project Extension Request', minSemester: 4 },
+            { name: 'Project Topic Approval', minSemester: 4 }
         ];
         return types.filter(type => studentSemester >= type.minSemester);
     };
@@ -151,6 +171,24 @@ const AcademicRequests = () => {
                                     ))}
                                 </Select>
                             </FormControl>
+
+                            {['Re-evaluation Request', 'Project Topic Approval', 'Submission Extension Request'].includes(requestType) && (
+                                <FormControl fullWidth variant="outlined" required>
+                                    <InputLabel>Subject</InputLabel>
+                                    <Select
+                                        value={subjectId}
+                                        onChange={(e) => setSubjectId(e.target.value)}
+                                        label="Subject"
+                                    >
+                                        <MenuItem value="" disabled><em>-- Select Subject --</em></MenuItem>
+                                        {subjects.map((sub) => (
+                                            <MenuItem key={sub._id} value={sub._id}>
+                                                {sub.name} ({sub.code})
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            )}
 
                             {requestType === 'Leave Application' && (
                                 <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
@@ -262,7 +300,7 @@ const AcademicRequests = () => {
                     onClose={() => setSelectedRequestId(null)}
                     maxWidth="md"
                     fullWidth
-                    PaperProps={{ sx: { borderRadius: 3, bgcolor: 'transparent', boxShadow: 'none' } }}
+                    PaperProps={{ sx: { borderRadius: 3, bgcolor: 'background.paper', backgroundImage: 'none' } }}
                 >
                     <DialogContent sx={{ p: 0 }}>
                         <RequestTimeline

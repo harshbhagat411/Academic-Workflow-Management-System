@@ -7,7 +7,7 @@ const requestAuditSchema = new mongoose.Schema({
     role: { type: String, enum: ['Student', 'Faculty', 'Admin'], required: true },
     action: {
         type: String,
-        enum: ['Submitted', 'Faculty Approved', 'Faculty Rejected', 'Approved', 'Rejected'],
+        enum: ['Submitted', 'Faculty Approved', 'Faculty Rejected', 'Approved', 'Rejected', 'PENDING_ADMIN_APPROVAL', 'APPROVED', 'REJECTED', 'SUBMITTED'],
         required: true
     },
     remarks: { type: String },

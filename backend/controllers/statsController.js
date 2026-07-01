@@ -8,10 +8,10 @@ exports.getStudentStats = async (req, res) => {
 
         // Aggregate counts
         const total = await Request.countDocuments({ studentId });
-        const submitted = await Request.countDocuments({ studentId, status: 'Submitted' });
-        const facultyApproved = await Request.countDocuments({ studentId, status: 'Faculty Approved' });
-        const finalApproved = await Request.countDocuments({ studentId, status: 'Approved' });
-        const rejected = await Request.countDocuments({ studentId, status: 'Rejected' });
+        const submitted = await Request.countDocuments({ studentId, status: { $in: ['Submitted', 'SUBMITTED'] } });
+        const facultyApproved = await Request.countDocuments({ studentId, status: { $in: ['Faculty Approved', 'PENDING_ADMIN_APPROVAL'] } });
+        const finalApproved = await Request.countDocuments({ studentId, status: { $in: ['Approved', 'APPROVED'] } });
+        const rejected = await Request.countDocuments({ studentId, status: { $in: ['Rejected', 'REJECTED'] } });
 
         res.json({
             total,
@@ -33,9 +33,9 @@ exports.getFacultyStats = async (req, res) => {
 
         if (!faculty) return res.status(404).json({ message: 'Faculty not found' });
 
-        // Pending: Requests in this faculty's department that are 'Submitted'
+        // Pending: Requests in this faculty's department that are 'Submitted' or 'SUBMITTED'
         const pending = await Request.countDocuments({
-            status: 'Submitted',
+            status: { $in: ['Submitted', 'SUBMITTED'] },
             department: faculty.department
         });
 
@@ -106,7 +106,7 @@ exports.getAdminStats = async (req, res) => {
         // Admin has system-wide visibility
         const total = await Request.countDocuments();
 
-        const pendingFinal = await Request.countDocuments({ status: 'Faculty Approved' });
+        const pendingFinal = await Request.countDocuments({ status: { $in: ['Faculty Approved', 'PENDING_ADMIN_APPROVAL'] } });
 
         // Delayed: Faculty OR Admin delay
         const delayed = await Request.countDocuments({
@@ -114,7 +114,7 @@ exports.getAdminStats = async (req, res) => {
         });
 
         const completed = await Request.countDocuments({
-            status: { $in: ['Approved', 'Rejected'] }
+            status: { $in: ['Approved', 'APPROVED', 'Rejected', 'REJECTED'] }
         });
 
         res.json({
