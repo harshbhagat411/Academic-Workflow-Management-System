@@ -14,20 +14,21 @@ const CreateUser = () => {
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
 
+    const fetchNextId = async (role) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            const res = await axios.get(`http://localhost:5000/api/users/next-id?role=${role || formData.role}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setGeneratedId(res.data.nextId);
+        } catch (error) {
+            console.error('Error fetching next ID', error);
+        }
+    };
+
     useEffect(() => {
-        const fetchNextId = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                if (!token) return;
-                const res = await axios.get(`http://localhost:5000/api/users/next-id?role=${formData.role}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setGeneratedId(res.data.nextId);
-            } catch (error) {
-                console.error('Error fetching next ID', error);
-            }
-        };
-        fetchNextId();
+        fetchNextId(formData.role);
     }, [formData.role]);
 
     const handleChange = (e) => {
@@ -84,10 +85,7 @@ const CreateUser = () => {
                 role: 'Student', semester: '1', specialization: ''
             });
 
-            const idRes = await axios.get(`http://localhost:5000/api/users/next-id?role=Student`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setGeneratedId(idRes.data.nextId);
+            await fetchNextId('Student');
         } catch (error) {
             setIsError(true);
             if (!error.response) {

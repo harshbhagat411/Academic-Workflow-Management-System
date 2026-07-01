@@ -94,9 +94,10 @@ const PromoteAcademicYear = () => {
                     if (res.data.success || res.status === 200) {
                         const count = res.data.promotedCount || selectedStudentIds.length;
                         setToast({ open: true, message: `${count} students promoted successfully`, severity: 'success' });
+                        fetchActiveStudents(); // Refresh immediately
                         
                         setTimeout(() => {
-                            fetchActiveStudents().finally(() => setIsProcessing(false));
+                            setIsProcessing(false);
                         }, 1500);
                     } else {
                         setToast({ open: true, message: 'Failed to promote students', severity: 'error' });

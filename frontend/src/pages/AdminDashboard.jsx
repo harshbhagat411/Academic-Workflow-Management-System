@@ -199,30 +199,31 @@ const AdminDashboard = () => {
     const [usersLoading, setUsersLoading] = useState(true);
     const [usersError, setUsersError] = useState('');
 
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            setLoadingStats(true);
-            try {
-                const token = localStorage.getItem('token');
-                
-                const [studentsRes, staffRes, subjectsRes] = await Promise.all([
-                    axios.get('http://localhost:5000/api/users/students', { headers: { Authorization: `Bearer ${token}` } }),
-                    axios.get('http://localhost:5000/api/users/staff', { headers: { Authorization: `Bearer ${token}` } }),
-                    axios.get('http://localhost:5000/api/subjects/all', { headers: { Authorization: `Bearer ${token}` } })
-                ]);
+    const fetchDashboardData = async () => {
+        setLoadingStats(true);
+        try {
+            const token = localStorage.getItem('token');
+            
+            const [studentsRes, staffRes, subjectsRes] = await Promise.all([
+                axios.get('http://localhost:5000/api/users/students', { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get('http://localhost:5000/api/users/staff', { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get('http://localhost:5000/api/subjects/all', { headers: { Authorization: `Bearer ${token}` } })
+            ]);
 
-                setDashboardStats({
-                    totalStudents: studentsRes.data.length || 0,
-                    totalFaculty: staffRes.data.length || 0,
-                    totalSubjects: subjectsRes.data.length || 0
-                });
-            } catch (err) {
-                console.error('Error fetching dashboard counts:', err);
-                setStatsError('Failed to load dashboard statistics.');
-            } finally {
-                setLoadingStats(false);
-            }
-        };
+            setDashboardStats({
+                totalStudents: studentsRes.data.length || 0,
+                totalFaculty: staffRes.data.length || 0,
+                totalSubjects: subjectsRes.data.length || 0
+            });
+        } catch (err) {
+            console.error('Error fetching dashboard counts:', err);
+            setStatsError('Failed to load dashboard statistics.');
+        } finally {
+            setLoadingStats(false);
+        }
+    };
+
+    useEffect(() => {
         fetchDashboardData();
     }, []);
 
@@ -282,7 +283,8 @@ const AdminDashboard = () => {
             });
             setShowCreateSectionModal(false);
             alert('Section Created Successfully!');
-            if (semesterFilter) fetchSections(semesterFilter);
+            setSemesterFilter(createSectionData.semester);
+            fetchSections(createSectionData.semester);
         } catch (error) {
             console.error(error);
             alert(error.response?.data?.message || 'Failed to create section');
@@ -571,6 +573,7 @@ const AdminDashboard = () => {
             alert('Subject created successfully');
             setNewSubject({ name: '', department: 'Computer Science', semester: '', type: 'Theory', facultyId: '' });
             fetchSubjects();
+            fetchDashboardData();
         } catch (err) {
             console.error('Error creating subject:', err);
             alert(err.response?.data?.message || 'Failed to create subject');
@@ -590,6 +593,7 @@ const AdminDashboard = () => {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     fetchSubjects();
+                    fetchDashboardData();
                 } catch (err) {
                     console.error('Error deleting subject:', err);
                 }
@@ -723,6 +727,7 @@ const AdminDashboard = () => {
 
                 if (activeTab === 'staff') fetchStaffList();
                 if (activeTab === 'students') fetchStudentList();
+                fetchDashboardData();
             } catch (error) {
                 console.error('Error updating status:', error);
                 alert(error.response?.data?.message || 'Failed to update status');
@@ -1620,7 +1625,7 @@ const AdminDashboard = () => {
                                                                 await axios.patch(`http://localhost:5000/api/sections/${section._id}`, { status: newStatus }, {
                                                                     headers: { Authorization: `Bearer ${token}` }
                                                                 });
-                                                                const res = await axios.get(`http://localhost:5000/api/sections?semester=${semesterFilter}`, {
+                                                                const res = await axios.get('http://localhost:5000/api/sections?semester=' + (semesterFilter || section.semester), {
                                                                     headers: { Authorization: `Bearer ${token}` }
                                                                 });
                                                                 setSections(res.data);
