@@ -147,21 +147,7 @@ Manages one-on-one communication channels between Students and their Faculty Men
 | `updatedAt` | Date | - | Default: `Date.now`, Managed by Mongoose | Last activity timestamp. |
 | `createdAt` | Date | - | Managed by Mongoose | Creation timestamp. |
 
----
-
-## 9. DailyAIUsage Collection
-Maintains quota limits and usage tracking for the academic chatbot helper.
-
-| Field Name | Data Type | Size / Length | Constraint | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| `_id` | ObjectId | - | Primary Key | Unique MongoDB internal identifier. |
-| `studentId` | ObjectId | - | Required, Foreign Key (Ref: `User`) | Reference to the Student. |
-| `date` | String | - | Required | Date represented as a `YYYY-MM-DD` string. |
-| `count` | Number | - | Default: `0` | Number of AI prompts made by the student on this date. |
-
----
-
-## 10. MentorAllocation Collection
+## 9. MentorAllocation Collection
 Details active mentor and guide allocations assigned to students for specific semesters.
 
 | Field Name | Data Type | Size / Length | Constraint | Description |
@@ -178,7 +164,7 @@ Details active mentor and guide allocations assigned to students for specific se
 
 ---
 
-## 11. Notification Collection
+## 10. Notification Collection
 Keeps track of in-app alerts and notifications delivered to users.
 
 | Field Name | Data Type | Size / Length | Constraint | Description |
@@ -192,7 +178,7 @@ Keeps track of in-app alerts and notifications delivered to users.
 
 ---
 
-## 12. Request Collection
+## 11. Request Collection
 Stores requests raised by students that follow a two-tier verification workflow (Faculty approval first, then Admin approval).
 
 | Field Name | Data Type | Size / Length | Constraint | Description |
@@ -222,7 +208,7 @@ Stores requests raised by students that follow a two-tier verification workflow 
 
 ---
 
-## 13. RequestAudit Collection
+## 12. RequestAudit Collection
 Documents audit history trails of actions performed on workflow requests.
 
 | Field Name | Data Type | Size / Length | Constraint | Description |
@@ -238,7 +224,7 @@ Documents audit history trails of actions performed on workflow requests.
 
 ---
 
-## 14. Section Collection
+## 13. Section Collection
 Stores section allocation configurations and limits per department and semester.
 
 | Field Name | Data Type | Size / Length | Constraint | Description |
@@ -255,7 +241,7 @@ Stores section allocation configurations and limits per department and semester.
 
 ---
 
-## 15. Settings Collection
+## 14. Settings Collection
 Maintains application theme, display, and notification configurations custom to every user.
 
 | Field Name | Data Type | Size / Length | Constraint | Description |
@@ -271,7 +257,7 @@ Maintains application theme, display, and notification configurations custom to 
 
 ---
 
-## 16. StudentMark Collection
+## 15. StudentMark Collection
 Registers individual assessment scores obtained by students.
 
 | Field Name | Data Type | Size / Length | Constraint | Description |
@@ -288,7 +274,7 @@ Registers individual assessment scores obtained by students.
 
 ---
 
-## 17. Subject Collection
+## 16. Subject Collection
 Represents courses/subjects taught under departments in specific semesters.
 
 | Field Name | Data Type | Size / Length | Constraint | Description |
@@ -304,7 +290,7 @@ Represents courses/subjects taught under departments in specific semesters.
 
 ---
 
-## 18. Submission Collection
+## 17. Submission Collection
 Registers submissions uploaded by students for assignments.
 
 | Field Name | Data Type | Size / Length | Constraint | Description |
@@ -323,7 +309,7 @@ Registers submissions uploaded by students for assignments.
 
 ---
 
-## 19. Timetable Collection
+## 18. Timetable Collection
 Defines schedule configurations and session slots in a week.
 
 | Field Name | Data Type | Size / Length | Constraint | Description |

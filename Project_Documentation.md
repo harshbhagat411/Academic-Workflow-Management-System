@@ -27,13 +27,12 @@ The system must support the following essential features to operate effectively:
 *   **Project Submission:** A secure portal allowing students to upload project documents, source code, and reports for mentor review.
 *   **Assessment Tracking:** A module where faculty can grade submissions and students can dynamically view their marks, statuses, and feedback.
 *   **Attendance Tracking:** A digital log to record and monitor student attendance during project meetings or related academic sessions.
-*   **AI Academic Assistant:** An integrated chatbot powered by artificial intelligence to answer academic queries, suggest resources, and help with project-related hurdles 24/7.
 *   **Communication Channel:** A built-in messaging or commenting system facilitating direct and contextual correspondence between students and their respective mentors.
 
 ## 5. Non-Functional Requirements
 To ensure a high-quality user experience and system reliability, the following non-functional requirements must be met:
 *   **Security:** Passwords must be securely encrypted. Sensitive personal and academic data must be protected against unauthorized access or breaches.
-*   **Performance:** The system should be highly responsive, with fast page load times and near real-time answers from the AI assistant.
+*   **Performance:** The system should be highly responsive, with fast page load times.
 *   **Reliability:** The platform should be available continuously with minimal downtime, ensuring that users can access project data whenever needed.
 *   **Scalability:** The system architecture must be capable of handling an increasing number of concurrent users, projects, and file uploads without degradation in performance.
 *   **Usability:** The user interface must be modern, highly intuitive, and easy to navigate for users with varying levels of technical proficiency.
